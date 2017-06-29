@@ -4,7 +4,6 @@
 	version="2.0">
 	<!-- Will be referenced in Spring Context File -->
 	<persistence-unit name="jpa-persistence" transaction-type="RESOURCE_LOCAL">
-		<class>br.com.costa.fiscalcred.model.Usuario</class>
 		<properties>
 			<property name="javax.persistence.jdbc.url" value="jdbc:mysql://104.131.120.128:3306/CREDFISCAL" />
 			<property name="javax.persistence.jdbc.user" value="credfiscaldev" />

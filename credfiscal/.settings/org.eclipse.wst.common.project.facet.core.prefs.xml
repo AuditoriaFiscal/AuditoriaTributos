@@ -9,4 +9,9 @@
       <attribute name="provider-id" value="jsf-no-op-library-provider"/>
     </node>
   </facet>
+  <facet id="jpt.jaxb">
+    <node name="classgen">
+      <attribute name="package" value="br.com.costa.fiscalcred.model.nfe"/>
+    </node>
+  </facet>
 </root>

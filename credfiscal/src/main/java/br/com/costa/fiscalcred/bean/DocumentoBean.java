@@ -56,6 +56,8 @@ public class DocumentoBean {
 	public String salvaDocumentoEntrada() {
 		
 		try {
+			uploadedFile.getInputstream();
+			
 			URL url = new URL("http://localhost:8080/barramento/documento/" + documento.getNome());
 			HttpURLConnection conn;
 			conn = (HttpURLConnection) url.openConnection();
@@ -97,7 +99,7 @@ public class DocumentoBean {
 		    while ((line = in.readLine()) != null) {
 		        System.out.println(line);
 		    }
-		    
+		    //JAXB XML TO OBJECT
 		} catch (IOException e) {
 			FacesContext.getCurrentInstance().addMessage(null,
 					new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
