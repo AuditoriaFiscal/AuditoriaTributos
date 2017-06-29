@@ -5,22 +5,19 @@
 	xmlns:f="http://java.sun.com/jsf/core"
 	xmlns:h="http://java.sun.com/jsf/html">
 <h:head>
-	<title>Login form</title>
+	<title>Login</title>
 </h:head>
 <h:body>
-	<h3>Login here</h3>
+	<h3>Seja bem vindo</h3>
 	<h:form id="login-form">
-		<h:outputText value="username:" />
+		<h:outputText value="Usuario: " />
 		<h:inputText value="#{loginBean.usuario.usuario}" id="username" />
 		<br />
-		<h:outputText value="password:" />
+		<h:outputText value="Senha: "/>
 		<h:inputSecret value="#{loginBean.usuario.senha}" id="password" />
 		<br />
 		<h:commandButton id="button" value="Login"
 			action="#{loginBean.doLogin}" />
-		<br />
-		<h:commandLink action="#{loginBean.redirectToInfo}"
-			value="Info page" />
 		<br />
 		<h:messages />
 		<br />

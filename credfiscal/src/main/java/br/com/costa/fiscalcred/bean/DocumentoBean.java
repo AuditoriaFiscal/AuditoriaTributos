@@ -1,9 +1,11 @@
 package br.com.costa.fiscalcred.bean;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -14,10 +16,23 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.primefaces.model.UploadedFile;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
 import br.com.costa.fiscalcred.model.Documento;
+import br.com.costa.fiscalcred.model.nfe.NfeProc;
 import br.com.costa.fiscalcred.service.DocumentoService;
 
 @ManagedBean
@@ -96,13 +111,45 @@ public class DocumentoBean {
 		    String line;
 
 		    List<String> responseData = new ArrayList<String>();
+		    StringBuffer xmlUpload = new StringBuffer();
 		    while ((line = in.readLine()) != null) {
-		        System.out.println(line);
+		        xmlUpload.append(line);
+		    	System.out.println(line);
 		    }
+		    
+		    convertStringToDocument(xmlUpload.toString());
 		    //JAXB XML TO OBJECT
 		} catch (IOException e) {
 			FacesContext.getCurrentInstance().addMessage(null,
 					new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
 		}
 	}
+	
+    private static Document convertStringToDocument(String xmlStr) {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();  
+        DocumentBuilder builder;  
+        try  
+        {  
+            builder = factory.newDocumentBuilder();  
+            Document doc = builder.parse( new InputSource( new StringReader( xmlStr ) ) ); 
+            
+            TransformerFactory tranFactory = TransformerFactory.newInstance();
+            Transformer aTransformer = tranFactory.newTransformer();
+            Source src = new DOMSource(doc);
+            Result dest = new StreamResult(new File("xmlFileName.xml"));
+            aTransformer.transform(src, dest);
+            
+    		File file = new File("xmlFileName.xml");
+    		JAXBContext jaxbContext = JAXBContext.newInstance(NfeProc.class);
+
+    		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+    		NfeProc customer = (NfeProc) jaxbUnmarshaller.unmarshal(file);
+    		System.out.println(customer);
+            
+            return doc;
+        } catch (Exception e) {  
+            e.printStackTrace();  
+        } 
+        return null;
+    }
 }
