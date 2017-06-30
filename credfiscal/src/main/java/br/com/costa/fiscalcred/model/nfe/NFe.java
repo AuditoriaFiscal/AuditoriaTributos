@@ -1,5 +1,8 @@
 package br.com.costa.fiscalcred.model.nfe;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement(name="NFe") 
 public class NFe {
 	private InfNFe infNFe;
 

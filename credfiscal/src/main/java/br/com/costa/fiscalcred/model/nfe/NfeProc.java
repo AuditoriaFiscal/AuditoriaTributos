@@ -1,6 +1,10 @@
 package br.com.costa.fiscalcred.model.nfe;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement(name="nfeProc") 
 public class NfeProc {
+	
 	private String protNFe;
 
 	private String xmlns;

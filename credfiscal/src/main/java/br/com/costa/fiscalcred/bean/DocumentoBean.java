@@ -3,21 +3,17 @@ package br.com.costa.fiscalcred.bean;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Result;
@@ -34,6 +30,7 @@ import org.xml.sax.InputSource;
 import br.com.costa.fiscalcred.model.Documento;
 import br.com.costa.fiscalcred.model.nfe.NfeProc;
 import br.com.costa.fiscalcred.service.DocumentoService;
+import br.com.samuelweb.nfe.util.XmlUtil;
 
 @ManagedBean
 @SessionScoped
@@ -102,32 +99,36 @@ public class DocumentoBean {
 		return "";
 	}
 
+	@SuppressWarnings("static-access")
 	public void uploadEntrada() {
 
 		try {
-			InputStream inputstream = uploadedFile.getInputstream();
-
 		    BufferedReader in = new BufferedReader(new InputStreamReader(uploadedFile.getInputstream()));
 		    String line;
 
-		    List<String> responseData = new ArrayList<String>();
 		    StringBuffer xmlUpload = new StringBuffer();
 		    while ((line = in.readLine()) != null) {
 		        xmlUpload.append(line);
 		    	System.out.println(line);
 		    }
 		    
-		    convertStringToDocument(xmlUpload.toString());
+		    XmlUtil util = new XmlUtil();
+		    util.xmlToObject(xmlUpload.toString(), NfeProc.class);
+		    convertStringToObject(xmlUpload.toString());
 		    //JAXB XML TO OBJECT
 		} catch (IOException e) {
 			FacesContext.getCurrentInstance().addMessage(null,
 					new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
+		} catch (JAXBException e) {
+			e.printStackTrace();
 		}
 	}
 	
-    private static Document convertStringToDocument(String xmlStr) {
+    @SuppressWarnings("static-access")
+	private static NfeProc convertStringToObject(String xmlStr) {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();  
-        DocumentBuilder builder;  
+        DocumentBuilder builder;
+        XmlUtil util = new XmlUtil();
         try  
         {  
             builder = factory.newDocumentBuilder();  
@@ -139,17 +140,13 @@ public class DocumentoBean {
             Result dest = new StreamResult(new File("xmlFileName.xml"));
             aTransformer.transform(src, dest);
             
-    		File file = new File("xmlFileName.xml");
-    		JAXBContext jaxbContext = JAXBContext.newInstance(NfeProc.class);
-
-    		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-    		NfeProc customer = (NfeProc) jaxbUnmarshaller.unmarshal(file);
-    		System.out.println(customer);
-            
-            return doc;
+    		String xml = util.replacesNfe(util.leXml("xmlFileName.xml"));
+    		NfeProc nfe = util.xmlToObject(xml, NfeProc.class);
+            return nfe;
         } catch (Exception e) {  
             e.printStackTrace();  
         } 
         return null;
     }
+    
 }

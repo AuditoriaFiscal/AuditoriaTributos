@@ -14,4 +14,9 @@
       <attribute name="package" value="br.com.costa.fiscalcred.model.nfe"/>
     </node>
   </facet>
+  <facet id="jst.jaxrs">
+    <node name="libprov">
+      <attribute name="provider-id" value="jaxrs-no-op-library-provider"/>
+    </node>
+  </facet>
 </root>
