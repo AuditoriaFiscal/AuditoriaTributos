@@ -18,6 +18,23 @@
 		<url-pattern>/secured/*</url-pattern>
 	</filter-mapping>
 
+	<filter>
+		<filter-name>FileUploadFilter</filter-name>
+		<filter-class>org.primefaces.webapp.filter.FileUploadFilter</filter-class>
+		<!-- init-param>
+			<param-name>thresholdSize</param-name>
+			<param-value>10240</param-value>
+		</init-param>
+		<init-param>
+			<param-name>uploadDirectory</param-name>
+			<param-value>/tmp/algaworks/uploads</param-value>
+		</init-param -->
+	</filter>
+	<filter-mapping>
+		<filter-name>FileUploadFilter</filter-name>
+		<servlet-name>FacesServlet</servlet-name>
+	</filter-mapping>
+
 	<!-- By default go to secured welcome page -->
 	<welcome-file-list>
 		<welcome-file>secured/index.xhtml</welcome-file>
@@ -34,6 +51,10 @@
 		<description>State saving method: 'client' or 'server' (=default). See JSF Specification 2.5.2</description>
 		<param-name>javax.faces.STATE_SAVING_METHOD</param-name>
 		<param-value>client</param-value>
+	</context-param>
+	<context-param>
+		<param-name>primefaces.UPLOADER</param-name>
+		<param-value>auto</param-value>
 	</context-param>
 	<listener>
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>

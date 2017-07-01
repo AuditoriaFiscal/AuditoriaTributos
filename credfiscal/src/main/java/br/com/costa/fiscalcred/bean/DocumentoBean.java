@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
@@ -23,11 +21,11 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.UploadedFile;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
-import br.com.costa.fiscalcred.model.Documento;
 import br.com.costa.fiscalcred.model.nfe.NfeProc;
 import br.com.costa.fiscalcred.service.DocumentoService;
 import br.com.samuelweb.nfe.util.XmlUtil;
@@ -38,15 +36,30 @@ public class DocumentoBean {
 
 	@ManagedProperty("#{documentoService}")
 	private DocumentoService documentoService;
-	private Documento documento = new Documento();
-	private UploadedFile uploadedFile;
 
-	public UploadedFile getUploadFile() {
-		return uploadedFile;
+	private UploadedFile arquivoEntrada;
+	private UploadedFile arquivoSaida;
+	
+	private NfeProc nfeEntrada;
+	private NfeProc nfeSaida;
+	
+	private String nomeArquivoEntrada;
+	private String nomeArquivoSaida;
+
+	public UploadedFile getArquivoEntrada() {
+		return arquivoEntrada;
 	}
 
-	public void setUploadFile(UploadedFile file) {
-		this.uploadedFile = file;
+	public void setArquivoEntrada(UploadedFile arquivoEntrada) {
+		this.arquivoEntrada = arquivoEntrada;
+	}
+
+	public UploadedFile getArquivoSaida() {
+		return arquivoSaida;
+	}
+
+	public void setArquivoSaida(UploadedFile arquivoSaida) {
+		this.arquivoSaida = arquivoSaida;
 	}
 
 	public DocumentoService getDocumentoService() {
@@ -57,73 +70,38 @@ public class DocumentoBean {
 		this.documentoService = documentoService;
 	}
 
-	public Documento getDocumento() {
-		return documento;
+	public NfeProc getNfeEntrada() {
+		return nfeEntrada;
 	}
 
-	public void setDocumento(Documento documento) {
-		this.documento = documento;
+	public void setNfeEntrada(NfeProc nfeEntrada) {
+		this.nfeEntrada = nfeEntrada;
 	}
 
-	public String salvaDocumentoEntrada() {
-		
-		try {
-			uploadedFile.getInputstream();
-			
-			URL url = new URL("http://localhost:8080/barramento/documento/" + documento.getNome());
-			HttpURLConnection conn;
-			conn = (HttpURLConnection) url.openConnection();
-			conn.setRequestMethod("POST");
-			conn.setRequestProperty("Accept", "application/json");
-			
-			if (conn.getResponseCode() != 200) {
-				throw new RuntimeException("Failed : HTTP error code : "
-						+ conn.getResponseCode());
-			}
-
-			BufferedReader br = new BufferedReader(new InputStreamReader(
-				(conn.getInputStream())));
-
-			String output;
-			System.out.println("Output from Server .... \n");
-			while ((output = br.readLine()) != null) {
-				System.out.println(output);
-			}
-
-			conn.disconnect();
-			
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("O documento foi inserido"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return "";
+	public NfeProc getNfeSaida() {
+		return nfeSaida;
 	}
 
-	@SuppressWarnings("static-access")
-	public void uploadEntrada() {
-
-		try {
-		    BufferedReader in = new BufferedReader(new InputStreamReader(uploadedFile.getInputstream()));
-		    String line;
-
-		    StringBuffer xmlUpload = new StringBuffer();
-		    while ((line = in.readLine()) != null) {
-		        xmlUpload.append(line);
-		    	System.out.println(line);
-		    }
-		    
-		    XmlUtil util = new XmlUtil();
-		    util.xmlToObject(xmlUpload.toString(), NfeProc.class);
-		    convertStringToObject(xmlUpload.toString());
-		    //JAXB XML TO OBJECT
-		} catch (IOException e) {
-			FacesContext.getCurrentInstance().addMessage(null,
-					new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
-		} catch (JAXBException e) {
-			e.printStackTrace();
-		}
+	public void setNfeSaida(NfeProc nfeSaida) {
+		this.nfeSaida = nfeSaida;
 	}
 	
+	public String getNomeArquivoEntrada() {
+		return nomeArquivoEntrada;
+	}
+
+	public void setNomeArquivoEntrada(String nomeArquivoEntrada) {
+		this.nomeArquivoEntrada = nomeArquivoEntrada;
+	}
+
+	public String getNomeArquivoSaida() {
+		return nomeArquivoSaida;
+	}
+
+	public void setNomeArquivoSaida(String nomeArquivoSaida) {
+		this.nomeArquivoSaida = nomeArquivoSaida;
+	}
+
     @SuppressWarnings("static-access")
 	private static NfeProc convertStringToObject(String xmlStr) {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();  
@@ -148,5 +126,55 @@ public class DocumentoBean {
         } 
         return null;
     }
+    
+
+	@SuppressWarnings("static-access")
+	public void upload(FileUploadEvent event) {
+		try {
+		    if(arquivoEntrada == null){
+		    	arquivoEntrada = event.getFile();
+		    	
+		    	BufferedReader in = new BufferedReader(new InputStreamReader(arquivoEntrada.getInputstream()));
+			    String line;
+
+			    StringBuffer xmlUpload = new StringBuffer();
+			    while ((line = in.readLine()) != null) {
+			        xmlUpload.append(line);
+			    	System.out.println(line);
+			    }
+			    
+			    XmlUtil util = new XmlUtil();
+			    util.xmlToObject(xmlUpload.toString(), NfeProc.class);
+			    setNfeEntrada(convertStringToObject(xmlUpload.toString()));
+			    
+		    }else if(arquivoEntrada != null && arquivoSaida == null){
+		    	arquivoSaida = event.getFile();
+		    	
+		    	BufferedReader in = new BufferedReader(new InputStreamReader(arquivoSaida.getInputstream()));
+			    String line;
+
+			    StringBuffer xmlUpload = new StringBuffer();
+			    while ((line = in.readLine()) != null) {
+			        xmlUpload.append(line);
+			    	System.out.println(line);
+			    }
+			    
+			    XmlUtil util = new XmlUtil();
+			    util.xmlToObject(xmlUpload.toString(), NfeProc.class);
+			    setNfeSaida(convertStringToObject(xmlUpload.toString()));
+		    }
+
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
+		} catch (IOException | JAXBException e) {
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
+		}
+
+	}
+	
+	public void handleFileUpload(FileUploadEvent event) {
+		FacesMessage message = new FacesMessage("Succesful", event.getFile().getFileName() + " is uploaded.");
+		FacesContext.getCurrentInstance().addMessage(null, message);
+	}
     
 }
