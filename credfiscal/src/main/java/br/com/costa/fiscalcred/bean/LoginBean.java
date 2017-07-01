@@ -55,7 +55,7 @@ public class LoginBean {
 	}
 
 	public String redirectToWelcome() {
-		return "/secured/index.xhtml?faces-redirect=true";
+		return "/secured/nfe.xhtml?faces-redirect=true";
 	}
 
 	@SuppressWarnings("unchecked")
