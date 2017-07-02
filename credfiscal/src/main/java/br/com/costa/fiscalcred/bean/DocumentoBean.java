@@ -5,12 +5,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.util.List;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
+import javax.persistence.Query;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -26,6 +28,8 @@ import org.primefaces.model.UploadedFile;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
+import br.com.costa.fiscalcred.model.Usuario;
+import br.com.costa.fiscalcred.model.nfe.Det;
 import br.com.costa.fiscalcred.model.nfe.NfeProc;
 import br.com.costa.fiscalcred.service.DocumentoService;
 import br.com.samuelweb.nfe.util.XmlUtil;
@@ -147,6 +151,8 @@ public class DocumentoBean {
 			    util.xmlToObject(xmlUpload.toString(), NfeProc.class);
 			    setNfeEntrada(convertStringToObject(xmlUpload.toString()));
 			    
+			    compararNotas();
+			    
 		    }else if(arquivoEntrada != null && arquivoSaida == null){
 		    	arquivoSaida = event.getFile();
 		    	
@@ -166,9 +172,21 @@ public class DocumentoBean {
 
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
 		} catch (IOException | JAXBException e) {
-			FacesContext.getCurrentInstance().addMessage(null,
-					new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
 		}
+
+	}
+	
+	public void compararNotas(){
+		Det[] itensNota = getNfeEntrada().getNFe().getInfNFe().getDet();
+		
+		
+		Query q = documentoService.getEm()
+				.createNativeQuery("SELECT n.* FROM NCM n WHERE n.id = ?", Usuario.class)
+				.setParameter(1, itensNota[0].getProd().getNCM()).
+				setParameter(2, itensNota[0].getProd().getxProd());
+
+		List<Object> lista = q.getResultList();
 
 	}
 	

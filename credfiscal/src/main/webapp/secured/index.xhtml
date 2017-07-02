@@ -87,21 +87,21 @@
 	                                        <div class="form-group">
 	                                            <p:growl id="messages" showDetail="true" />
 												<p:outputLabel value="${nomeArquivoEntrada}" />
-													<p:outputLabel value="Arquivo: " />
-													<p:fileUpload fileUploadListener="#{documentoBean.upload}" 
-																  
-																  fileLimit="2" 
-																  fileLimitMessage="Só é possível escolher 2 arquivos por vez."
-																  
-																  allowTypes="/(\.|\/)(xml)$/"
-																  invalidFileMessage="É permitido somente arquivo xml"
-																  
-																  label="Escolher" 
-																  uploadLabel="Enviar" 
-																  cancelLabel="Cancelar" 
-																  
-																  sequential="true"
-																  dragDropSupport="true"/>
+												<p:outputLabel value="Arquivo: " />
+												<p:fileUpload fileUploadListener="#{documentoBean.upload}" 
+															  
+															  fileLimit="2" 
+															  fileLimitMessage="Só é possível escolher 2 arquivos por vez."
+															  
+															  allowTypes="/(\.|\/)(xml)$/"
+															  invalidFileMessage="É permitido somente arquivo xml"
+															  
+															  label="Escolher" 
+															  uploadLabel="Enviar" 
+															  cancelLabel="Cancelar" 
+															  
+															  sequential="true"
+															  dragDropSupport="true"/>
 	                                        </div>
 	                                    </h:form>
 	                                </div>

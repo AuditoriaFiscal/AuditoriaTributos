@@ -65,11 +65,11 @@ public class Prod {
 		this.xPed = xPed;
 	}
 
-	public String getXProd() {
+	public String getxProd() {
 		return xProd;
 	}
 
-	public void setXProd(String xProd) {
+	public void setxProd(String xProd) {
 		this.xProd = xProd;
 	}
 
