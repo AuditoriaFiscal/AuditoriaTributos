@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
@@ -28,7 +29,11 @@ import org.primefaces.model.UploadedFile;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
-import br.com.costa.fiscalcred.model.Usuario;
+import br.com.costa.credfiscal.util.NFCompareUtils;
+import br.com.costa.fiscalcred.model.Documento;
+import br.com.costa.fiscalcred.model.DocumentoItem;
+import br.com.costa.fiscalcred.model.DocumentoItemResult;
+import br.com.costa.fiscalcred.model.NCM;
 import br.com.costa.fiscalcred.model.nfe.Det;
 import br.com.costa.fiscalcred.model.nfe.NfeProc;
 import br.com.costa.fiscalcred.service.DocumentoService;
@@ -37,7 +42,7 @@ import br.com.samuelweb.nfe.util.XmlUtil;
 @ManagedBean
 @SessionScoped
 public class DocumentoBean {
-
+	
 	@ManagedProperty("#{documentoService}")
 	private DocumentoService documentoService;
 
@@ -101,98 +106,149 @@ public class DocumentoBean {
 	public String getNomeArquivoSaida() {
 		return nomeArquivoSaida;
 	}
-
 	public void setNomeArquivoSaida(String nomeArquivoSaida) {
 		this.nomeArquivoSaida = nomeArquivoSaida;
 	}
 
-    @SuppressWarnings("static-access")
+	@PostConstruct
+	private void doInit(){
+		arquivoEntrada = null;
+		arquivoSaida = null;
+	}
+	
+	@SuppressWarnings("static-access")
 	private static NfeProc convertStringToObject(String xmlStr) {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();  
-        DocumentBuilder builder;
-        XmlUtil util = new XmlUtil();
-        try  
-        {  
-            builder = factory.newDocumentBuilder();  
-            Document doc = builder.parse( new InputSource( new StringReader( xmlStr ) ) ); 
-            
-            TransformerFactory tranFactory = TransformerFactory.newInstance();
-            Transformer aTransformer = tranFactory.newTransformer();
-            Source src = new DOMSource(doc);
-            Result dest = new StreamResult(new File("xmlFileName.xml"));
-            aTransformer.transform(src, dest);
-            
-    		String xml = util.replacesNfe(util.leXml("xmlFileName.xml"));
-    		NfeProc nfe = util.xmlToObject(xml, NfeProc.class);
-            return nfe;
-        } catch (Exception e) {  
-            e.printStackTrace();  
-        } 
-        return null;
-    }
-    
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder;
+		XmlUtil util = new XmlUtil();
+		try {
+			builder = factory.newDocumentBuilder();
+			Document doc = builder.parse(new InputSource(new StringReader(xmlStr)));
+
+			TransformerFactory tranFactory = TransformerFactory.newInstance();
+			Transformer aTransformer = tranFactory.newTransformer();
+			Source src = new DOMSource(doc);
+			Result dest = new StreamResult(new File("xmlFileName.xml"));
+			aTransformer.transform(src, dest);
+
+			String xml = util.replacesNfe(util.leXml("xmlFileName.xml"));
+			NfeProc nfe = util.xmlToObject(xml, NfeProc.class);
+			return nfe;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	@SuppressWarnings("static-access")
 	public void upload(FileUploadEvent event) {
 		try {
-		    if(arquivoEntrada == null){
-		    	arquivoEntrada = event.getFile();
-		    	
-		    	BufferedReader in = new BufferedReader(new InputStreamReader(arquivoEntrada.getInputstream()));
-			    String line;
+			if(arquivoEntrada == null){
+				arquivoEntrada = event.getFile();
+				
+				BufferedReader in = new BufferedReader(new InputStreamReader(arquivoEntrada.getInputstream()));
+				String line;
+	
+				StringBuffer xmlUpload = new StringBuffer();
+				while ((line = in.readLine()) != null) {
+					xmlUpload.append(line);
+					System.out.println(line);
+				}
+				
+				XmlUtil util = new XmlUtil();
+				util.xmlToObject(xmlUpload.toString(), NfeProc.class);
+				setNfeEntrada(convertStringToObject(xmlUpload.toString()));
+				Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), event.getFile().getFileName());
+				compararNotas(documento.getId());
+				FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
 
-			    StringBuffer xmlUpload = new StringBuffer();
-			    while ((line = in.readLine()) != null) {
-			        xmlUpload.append(line);
-			    	System.out.println(line);
-			    }
-			    
-			    XmlUtil util = new XmlUtil();
-			    util.xmlToObject(xmlUpload.toString(), NfeProc.class);
-			    setNfeEntrada(convertStringToObject(xmlUpload.toString()));
-			    
-			    compararNotas();
-			    
-		    }else if(arquivoEntrada != null && arquivoSaida == null){
-		    	arquivoSaida = event.getFile();
-		    	
-		    	BufferedReader in = new BufferedReader(new InputStreamReader(arquivoSaida.getInputstream()));
-			    String line;
+			} else if (arquivoEntrada != null && arquivoSaida == null) {
+				arquivoSaida = event.getFile();
 
-			    StringBuffer xmlUpload = new StringBuffer();
-			    while ((line = in.readLine()) != null) {
-			        xmlUpload.append(line);
-			    	System.out.println(line);
-			    }
-			    
-			    XmlUtil util = new XmlUtil();
-			    util.xmlToObject(xmlUpload.toString(), NfeProc.class);
-			    setNfeSaida(convertStringToObject(xmlUpload.toString()));
-		    }
+				BufferedReader in = new BufferedReader(new InputStreamReader(arquivoSaida.getInputstream()));
+				String line;
 
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
+				StringBuffer xmlUpload = new StringBuffer();
+				while ((line = in.readLine()) != null) {
+					xmlUpload.append(line);
+					System.out.println(line);
+				}
+
+				XmlUtil util = new XmlUtil();
+				util.xmlToObject(xmlUpload.toString(), NfeProc.class);
+				setNfeSaida(convertStringToObject(xmlUpload.toString()));
+				
+				Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeSaida().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeSaida().getNFe().getInfNFe().getEmit().getCNPJ()), event.getFile().getFileName());
+				compararNotas(documento.getId());
+				FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
+			}
+
 		} catch (IOException | JAXBException e) {
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
 		}
 
 	}
 	
-	public void compararNotas(){
+	@SuppressWarnings("unchecked")
+	public void compararNotas(Long idDocumento){
 		Det[] itensNota = getNfeEntrada().getNFe().getInfNFe().getDet();
 		
-		
-		Query q = documentoService.getEm()
-				.createNativeQuery("SELECT n.* FROM NCM n WHERE n.id = ?", Usuario.class)
-				.setParameter(1, itensNota[0].getProd().getNCM()).
-				setParameter(2, itensNota[0].getProd().getxProd());
+		for(int i = 0; itensNota.length > i; i++){
+			DocumentoItem item = gravaDadosDocumento(itensNota[i].getProd().getxProd(), idDocumento, new Long(itensNota[i].getProd().getNCM()));
 
-		List<Object> lista = q.getResultList();
+			Query q = documentoService.getEm()
+					.createNativeQuery("SELECT n.* FROM NCM n WHERE n.id = ? ", NCM.class)
+					.setParameter(1, itensNota[i].getProd().getNCM());
 
+			List<NCM> lista = q.getResultList();
+			
+			if (lista.size() > 0) {
+				NCM ncm = lista.get(0);
+				
+				itensNota[i].getProd().setComparadorNCM(NFCompareUtils.compareNFDescription(ncm, itensNota[i]));
+				if(!itensNota[i].getProd().isComparadorNCM()){
+					gravaDadosDocumentoResult("Descrição incompatível com código NCM " + itensNota[i].getProd().getNCM() + 
+											  " - Esperado : \"" + ncm.getDescricao() + "\"" + 
+											  " - Obtido : \"" + itensNota[i].getProd().getxProd() + "\"", item.getId());
+				}
+			}else{
+				gravaDadosDocumentoResult("Código NCM " + itensNota[i].getProd().getNCM() + " não localizado", item.getId());
+			}
+		}
 	}
 	
 	public void handleFileUpload(FileUploadEvent event) {
 		FacesMessage message = new FacesMessage("Succesful", event.getFile().getFileName() + " is uploaded.");
 		FacesContext.getCurrentInstance().addMessage(null, message);
 	}
-    
+	
+	public Documento crateDocumento(String xml, Long numeroNF, Long cnpj, String nomeArquivo){
+		
+		Documento documento = new Documento();
+		
+		documento.setNota(xml);
+		documento.setCnpj(cnpj);
+		documento.setNumeroNF(numeroNF);
+		
+		return documentoService.register(documento);
+	}
+	
+	public DocumentoItem gravaDadosDocumento(String descricao, Long idDocumento, Long idNcm){
+		DocumentoItem item = new DocumentoItem();
+		
+		item.setDescricao(descricao);
+		item.setIdDocumento(idDocumento);
+		item.setIdNcm(idNcm);
+		
+		return documentoService.registerItem(item);
+	}
+	
+	public DocumentoItemResult gravaDadosDocumentoResult(String descricao, Long idDocumentoItem){
+		DocumentoItemResult itemResult = new DocumentoItemResult();
+		
+		itemResult.setDescricao(descricao);
+		itemResult.setIdDocumentoItem(idDocumentoItem);
+		
+		return documentoService.registerItemResult(itemResult);
+	}
 }

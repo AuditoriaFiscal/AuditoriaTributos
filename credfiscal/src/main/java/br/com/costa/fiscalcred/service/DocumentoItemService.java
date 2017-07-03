@@ -6,12 +6,10 @@ import javax.persistence.PersistenceContext;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.com.costa.fiscalcred.model.Documento;
 import br.com.costa.fiscalcred.model.DocumentoItem;
-import br.com.costa.fiscalcred.model.DocumentoItemResult;
 
 @Component
-public class DocumentoService {
+public class DocumentoItemService {
 
 	@PersistenceContext
 	private EntityManager em;
@@ -25,21 +23,7 @@ public class DocumentoService {
 	}
 
 	@Transactional
-	public Documento register(Documento doc) {
-		this.em.persist(doc);
-		
-		return doc;
-	}
-	
-	@Transactional
-	public DocumentoItem registerItem(DocumentoItem doc) {
-		this.em.persist(doc);
-		
-		return doc;
-	}
-	
-	@Transactional
-	public DocumentoItemResult registerItemResult(DocumentoItemResult doc) {
+	public DocumentoItem register(DocumentoItem doc) {
 		this.em.persist(doc);
 		
 		return doc;

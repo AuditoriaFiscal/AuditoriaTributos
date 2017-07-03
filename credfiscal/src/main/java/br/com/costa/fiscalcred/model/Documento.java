@@ -1,29 +1,33 @@
 package br.com.costa.fiscalcred.model;
 
-import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+
+import org.hibernate.annotations.Type;
 
 @Entity
-@Table(name="DOCUMENTO")
+@Table(name="CREDFISCAL.DOCUMENTO")
 public class Documento {
 
 	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY) 
 	@Column(name="ID")
 	private long id;
 	
-	@Column(name="DATACADASTRO")
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date dataCadastro;
+	@Column(name="NOTA")
+	@Type(type="text")
+	private String nota;
 	
-	@Column(name="NOME")
-	private String nome;
-
+	@Column(name="NUMERONF")
+	private Long numeroNF;
+	
+	@Column(name="CNPJ")
+	private Long cnpj;
+	
 	public long getId() {
 		return id;
 	}
@@ -32,20 +36,28 @@ public class Documento {
 		this.id = id;
 	}
 
-	public Date getDataCadastro() {
-		return dataCadastro;
+	public String getNota() {
+		return nota;
 	}
 
-	public void setDataCadastro(Date dataCadastro) {
-		this.dataCadastro = dataCadastro;
+	public void setNota(String nota) {
+		this.nota = nota;
 	}
 
-	public String getNome() {
-		return nome;
+	public Long getNumeroNF() {
+		return numeroNF;
 	}
 
-	public void setNome(String nome) {
-		this.nome = nome;
+	public void setNumeroNF(Long numeroNF) {
+		this.numeroNF = numeroNF;
 	}
-	
+
+	public Long getCnpj() {
+		return cnpj;
+	}
+
+	public void setCnpj(Long cnpj) {
+		this.cnpj = cnpj;
+	}
+
 }

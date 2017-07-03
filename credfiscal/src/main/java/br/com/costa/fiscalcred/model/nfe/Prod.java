@@ -32,6 +32,8 @@ public class Prod {
 	private String cEANTrib;
 
 	private String qCom;
+	
+	private boolean comparadorNCM = false;
 
 	public String getUCom() {
 		return uCom;
@@ -159,6 +161,15 @@ public class Prod {
 
 	public void setQCom(String qCom) {
 		this.qCom = qCom;
+	}
+
+	
+	public boolean isComparadorNCM() {
+		return comparadorNCM;
+	}
+
+	public void setComparadorNCM(boolean comparadorNCM) {
+		this.comparadorNCM = comparadorNCM;
 	}
 
 	@Override

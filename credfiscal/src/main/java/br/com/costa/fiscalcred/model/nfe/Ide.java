@@ -67,11 +67,11 @@ public class Ide {
 		this.tpAmb = tpAmb;
 	}
 
-	public String getCNF() {
+	public String getcNF() {
 		return cNF;
 	}
 
-	public void setCNF(String cNF) {
+	public void setcNF(String cNF) {
 		this.cNF = cNF;
 	}
 
