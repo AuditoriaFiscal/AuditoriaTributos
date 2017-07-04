@@ -103,7 +103,7 @@
 															  sequential="true"
 															  dragDropSupport="true"
 															  
-															  update="tabelaDocumentoEntrada"/>
+															  update="tabelaDocumentoEntrada tabelaDocumentoSaida"/>
 											</div>
 
 										</div>
@@ -112,50 +112,40 @@
 											<div class="form-group">
 												<p:outputLabel value="Resultado Documento entrada: " />
 											</div>
-											<p:dataTable id="tabelaDocumentoEntrada" var="documento"
-												value="#{documentoBean.documentoEntrada}"
-												paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
-												paginator="true" rows="10" style="margin-bottom:20px">
-		
-												<!-- f:facet name="{Exporters}">
-													<h:commandLink>
-														<p:graphicImage name="/demo/images/excel.png" width="24" />
-														<p:dataExporter type="xls" target="tbl" fileName="cars" />
-													</h:commandLink>
-		
-													<h:commandLink>
-														<p:graphicImage name="/demo/images/pdf.png" width="24" />
-														<p:dataExporter type="pdf" target="tbl" fileName="cars" />
-													</h:commandLink>
-		
-													<h:commandLink>
-														<p:graphicImage name="/demo/images/csv.png" width="24" />
-														<p:dataExporter type="csv" target="tbl" fileName="cars" />
-													</h:commandLink>
-		
-													<h:commandLink>
-														<p:graphicImage name="/demo/images/xml.png" width="24" />
-														<p:dataExporter type="xml" target="tbl" fileName="cars" />
-													</h:commandLink>
-												</f:facet -->
-	
-												<p:row>
-													<p:column>Documento</p:column>
-													<p:column>NCM</p:column>
-													<p:column>Descrição Produto</p:column>
-													<p:column>Resultado</p:column>
-												</p:row>
-		
-												<c:forEach items="#{documento.itens}" var="item">
-													<c:forEach items="#{item.itensResult}" var="itemResult">
-														<p:row>
-															<p:column>#{documento.nomeNota}</p:column>
-															<p:column>#{item.idNcm}</p:column>
-															<p:column>#{item.descricao}</p:column>
-															<p:column>#{itemResult.descricao}</p:column>
-														</p:row>
-													</c:forEach>
-												</c:forEach>
+											<p:dataTable id="tabelaDocumentoEntrada" var="documento" value="#{documentoBean.documentoEntrada}">
+												<p:column headerText="Id">
+													<h:outputText value="#{documento.nomeNota}" />
+												</p:column>
+												<p:column headerText="Item">
+													<ui:repeat var="item" value="#{documento.itens}">
+														<p:column headerText="NCM">
+															<h:outputText value="#{item.idNcm}" />
+															<ui:repeat var="itemResult" value="#{item.itensResult}">
+																<h:outputLabel value="#{itemResult.descricao}" />
+															</ui:repeat>
+														</p:column>
+													</ui:repeat>
+												</p:column>
+											</p:dataTable>
+										</div>
+										<div class="col-lg-12">
+											<div class="form-group">
+												<p:outputLabel value="Resultado Documento saída: " />
+											</div>
+											<p:dataTable id="tabelaDocumentoSaida" var="documento" value="#{documentoBean.documentoSaida}">
+												<p:column headerText="Id">
+													<h:outputText value="#{documento.nomeNota}" />
+												</p:column>
+												<p:column headerText="Item">
+													<ui:repeat var="item" value="#{documento.itens}">
+														<p:column headerText="NCM">
+															<h:outputText value="#{item.idNcm}" />
+															<ui:repeat var="itemResult" value="#{item.itensResult}">
+																<h:outputLabel value="#{itemResult.descricao}" />
+															</ui:repeat>
+														</p:column>
+													</ui:repeat>
+												</p:column>
 											</p:dataTable>
 										</div>
 									</div>
