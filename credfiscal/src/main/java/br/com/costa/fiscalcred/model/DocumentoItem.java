@@ -1,11 +1,14 @@
 package br.com.costa.fiscalcred.model;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.Type;
 
@@ -27,6 +30,9 @@ public class DocumentoItem {
 	@Column(name="DESCRICAO")
 	@Type(type="text")
 	private String descricao;
+	
+	@Transient
+	private List<DocumentoItemResult> itensResult;
 	
 	public long getId() {
 		return id;
@@ -60,4 +66,12 @@ public class DocumentoItem {
 		this.descricao = descricao;
 	}
 
+	public List<DocumentoItemResult> getItensResult() {
+		return itensResult;
+	}
+
+	public void setItensResult(List<DocumentoItemResult> itensResult) {
+		this.itensResult = itensResult;
+	}
+	
 }

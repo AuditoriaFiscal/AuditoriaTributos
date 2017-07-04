@@ -4,7 +4,8 @@
 		xmlns:ui="http://java.sun.com/jsf/facelets"
 		xmlns:h="http://java.sun.com/jsf/html"
 		xmlns:f="http://java.sun.com/jsf/core"
-		xmlns:p="http://primefaces.org/ui">
+		xmlns:p="http://primefaces.org/ui"
+		xmlns:c="http://java.sun.com/jstl/core">
 
 	<h:head>
 	
@@ -29,7 +30,7 @@
 	        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
 	            <div class="navbar-header">
 	                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-	                    <span class="sr-only">Toggle navigation</span>
+	                    <span class="sr-only"></span>
 	                    <span class="icon-bar"></span>
 	                    <span class="icon-bar"></span>
 	                    <span class="icon-bar"></span>
@@ -81,31 +82,84 @@
 								Inclusão de NFe
 							</div>
 							<div class="panel-body">
-								<div class="row">
-									<div class="col-lg-12">
-										<h:form enctype="multipart/form-data">
+								<h:form enctype="multipart/form-data">
+									<div class="row">
+										<div class="col-lg-12">
 											<p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
 											<div class="form-group">
-												<p:outputLabel value="${nomeArquivoEntrada}" />
-													<p:outputLabel value="Arquivo: " />
-													<p:fileUpload fileUploadListener="#{documentoBean.upload}" 
-																  
-																  fileLimit="2" 
-																  fileLimitMessage="Só é possível escolher 2 arquivos por vez."
-																  
-																  allowTypes="/(\.|\/)(xml)$/"
-																  invalidFileMessage="É permitido somente arquivo xml"
-																  
-																  label="Escolher" 
-																  uploadLabel="Enviar" 
-																  cancelLabel="Cancelar" 
-																  
-																  sequential="true"
-																  dragDropSupport="true"/>
+												<p:outputLabel value="Arquivo: " />
+												<p:fileUpload fileUploadListener="#{documentoBean.upload}" 
+															  mode="advanced"
+															  fileLimit="2" 
+															  fileLimitMessage="Só é possível escolher 2 arquivos por vez."
+															  
+															  allowTypes="/(\.|\/)(xml)$/"
+															  invalidFileMessage="É permitido somente arquivo xml"
+															  
+															  label="Escolher" 
+															  uploadLabel="Enviar" 
+															  cancelLabel="Cancelar" 
+															  
+															  sequential="true"
+															  dragDropSupport="true"
+															  
+															  update="tabelaDocumentoEntrada"/>
 											</div>
-										</h:form>
+
+										</div>
+										
+										<div class="col-lg-12">
+											<div class="form-group">
+												<p:outputLabel value="Resultado Documento entrada: " />
+											</div>
+											<p:dataTable id="tabelaDocumentoEntrada" var="documento"
+												value="#{documentoBean.documentoEntrada}"
+												paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+												paginator="true" rows="10" style="margin-bottom:20px">
+		
+												<!-- f:facet name="{Exporters}">
+													<h:commandLink>
+														<p:graphicImage name="/demo/images/excel.png" width="24" />
+														<p:dataExporter type="xls" target="tbl" fileName="cars" />
+													</h:commandLink>
+		
+													<h:commandLink>
+														<p:graphicImage name="/demo/images/pdf.png" width="24" />
+														<p:dataExporter type="pdf" target="tbl" fileName="cars" />
+													</h:commandLink>
+		
+													<h:commandLink>
+														<p:graphicImage name="/demo/images/csv.png" width="24" />
+														<p:dataExporter type="csv" target="tbl" fileName="cars" />
+													</h:commandLink>
+		
+													<h:commandLink>
+														<p:graphicImage name="/demo/images/xml.png" width="24" />
+														<p:dataExporter type="xml" target="tbl" fileName="cars" />
+													</h:commandLink>
+												</f:facet -->
+	
+												<p:row>
+													<p:column>Documento</p:column>
+													<p:column>NCM</p:column>
+													<p:column>Descrição Produto</p:column>
+													<p:column>Resultado</p:column>
+												</p:row>
+		
+												<c:forEach items="#{documento.itens}" var="item">
+													<c:forEach items="#{item.itensResult}" var="itemResult">
+														<p:row>
+															<p:column>#{documento.nomeNota}</p:column>
+															<p:column>#{item.idNcm}</p:column>
+															<p:column>#{item.descricao}</p:column>
+															<p:column>#{itemResult.descricao}</p:column>
+														</p:row>
+													</c:forEach>
+												</c:forEach>
+											</p:dataTable>
+										</div>
 									</div>
-								</div>
+								</h:form>
 							</div>
 						</div>
 					</div>

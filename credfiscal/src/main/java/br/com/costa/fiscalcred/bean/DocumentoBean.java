@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -54,6 +55,9 @@ public class DocumentoBean {
 	
 	private String nomeArquivoEntrada;
 	private String nomeArquivoSaida;
+	
+	private Documento documentoEntrada;
+	private Documento documentoSaida;
 
 	public UploadedFile getArquivoEntrada() {
 		return arquivoEntrada;
@@ -109,6 +113,22 @@ public class DocumentoBean {
 	public void setNomeArquivoSaida(String nomeArquivoSaida) {
 		this.nomeArquivoSaida = nomeArquivoSaida;
 	}
+	
+	public Documento getDocumentoEntrada() {
+		return documentoEntrada;
+	}
+
+	public void setDocumentoEntrada(Documento documentoEntrada) {
+		this.documentoEntrada = documentoEntrada;
+	}
+
+	public Documento getDocumentoSaida() {
+		return documentoSaida;
+	}
+
+	public void setDocumentoSaida(Documento documentoSaida) {
+		this.documentoSaida = documentoSaida;
+	}
 
 	@PostConstruct
 	private void doInit(){
@@ -159,7 +179,9 @@ public class DocumentoBean {
 				util.xmlToObject(xmlUpload.toString(), NfeProc.class);
 				setNfeEntrada(convertStringToObject(xmlUpload.toString()));
 				Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), event.getFile().getFileName());
-				compararNotas(documento.getId());
+				documento.setItens(compararNotas(documento.getId()));
+				
+				documentoEntrada = documento;
 				FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
 
 			} else if (arquivoEntrada != null && arquivoSaida == null) {
@@ -179,7 +201,9 @@ public class DocumentoBean {
 				setNfeSaida(convertStringToObject(xmlUpload.toString()));
 				
 				Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeSaida().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeSaida().getNFe().getInfNFe().getEmit().getCNPJ()), event.getFile().getFileName());
-				compararNotas(documento.getId());
+				documento.setItens(compararNotas(documento.getId()));
+				
+				documentoSaida = documento;
 				FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
 			}
 
@@ -190,10 +214,15 @@ public class DocumentoBean {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void compararNotas(Long idDocumento){
+	public List<DocumentoItem> compararNotas(Long idDocumento){
+
+		List<DocumentoItem> itens = new ArrayList<DocumentoItem>();
+
 		Det[] itensNota = getNfeEntrada().getNFe().getInfNFe().getDet();
 		
 		for(int i = 0; itensNota.length > i; i++){
+			List<DocumentoItemResult> itensResult = new ArrayList<DocumentoItemResult>();
+			
 			DocumentoItem item = gravaDadosDocumento(itensNota[i].getProd().getxProd(), idDocumento, new Long(itensNota[i].getProd().getNCM()));
 
 			Query q = documentoService.getEm()
@@ -203,18 +232,26 @@ public class DocumentoBean {
 			List<NCM> lista = q.getResultList();
 			
 			if (lista.size() > 0) {
-				NCM ncm = lista.get(0);
 				
+				DocumentoItemResult itemResult = new DocumentoItemResult();
+				NCM ncm = lista.get(0);
 				itensNota[i].getProd().setComparadorNCM(NFCompareUtils.compareNFDescription(ncm, itensNota[i]));
 				if(!itensNota[i].getProd().isComparadorNCM()){
-					gravaDadosDocumentoResult("Descrição incompatível com código NCM " + itensNota[i].getProd().getNCM() + 
+					 itemResult = gravaDadosDocumentoResult("Descrição incompatível com código NCM " + itensNota[i].getProd().getNCM() + 
 											  " - Esperado : \"" + ncm.getDescricao() + "\"" + 
 											  " - Obtido : \"" + itensNota[i].getProd().getxProd() + "\"", item.getId());
+					itensResult.add(itemResult);
 				}
 			}else{
-				gravaDadosDocumentoResult("Código NCM " + itensNota[i].getProd().getNCM() + " não localizado", item.getId());
+				DocumentoItemResult itemResult = gravaDadosDocumentoResult("Código NCM " + itensNota[i].getProd().getNCM() + " não localizado", item.getId());
+				itensResult.add(itemResult);
 			}
+			
+			item.setItensResult(itensResult);
+			itens.add(item);
 		}
+		
+		return itens;
 	}
 	
 	public void handleFileUpload(FileUploadEvent event) {
@@ -229,6 +266,7 @@ public class DocumentoBean {
 		documento.setNota(xml);
 		documento.setCnpj(cnpj);
 		documento.setNumeroNF(numeroNF);
+		documento.setNomeNota(nomeArquivo);
 		
 		return documentoService.register(documento);
 	}
