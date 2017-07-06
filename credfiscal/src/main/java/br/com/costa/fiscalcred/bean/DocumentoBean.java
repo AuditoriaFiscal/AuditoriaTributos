@@ -1,10 +1,8 @@
 package br.com.costa.fiscalcred.bean;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,19 +14,9 @@ import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.persistence.Query;
 import javax.xml.bind.JAXBException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.UploadedFile;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 
 import br.com.costa.credfiscal.util.NFCompareUtils;
 import br.com.costa.fiscalcred.model.Documento;
@@ -138,26 +126,69 @@ public class DocumentoBean {
 	
 	@SuppressWarnings("static-access")
 	private static NfeProc convertStringToObject(String xmlStr) {
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder;
 		XmlUtil util = new XmlUtil();
 		try {
-			builder = factory.newDocumentBuilder();
-			Document doc = builder.parse(new InputSource(new StringReader(xmlStr)));
-
-			TransformerFactory tranFactory = TransformerFactory.newInstance();
-			Transformer aTransformer = tranFactory.newTransformer();
-			Source src = new DOMSource(doc);
-			Result dest = new StreamResult(new File("xmlFileName.xml"));
-			aTransformer.transform(src, dest);
-
-			String xml = util.replacesNfe(util.leXml("xmlFileName.xml"));
+			String xml = util.replacesNfe(xmlStr);
 			NfeProc nfe = util.xmlToObject(xml, NfeProc.class);
 			return nfe;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	@SuppressWarnings("static-access")
+	public void uploadEntrada() {
+		try {
+			BufferedReader in = new BufferedReader(new InputStreamReader(arquivoEntrada.getInputstream()));
+			String line;
+
+			StringBuffer xmlUpload = new StringBuffer();
+			while ((line = in.readLine()) != null) {
+				xmlUpload.append(line);
+				System.out.println(line);
+			}
+			
+			XmlUtil util = new XmlUtil();
+			util.xmlToObject(xmlUpload.toString(), NfeProc.class);
+			setNfeEntrada(convertStringToObject(xmlUpload.toString()));
+			Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), arquivoEntrada.getFileName());
+			documento.setItens(compararNotas(documento.getId()));
+			
+			documentoEntrada = documento;
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + arquivoEntrada.getFileName() + " foi salvo!"));
+		} catch (IOException | JAXBException e) {
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
+		}
+
+	}
+	
+	@SuppressWarnings("static-access")
+	public void uploadSaida() {
+		try {
+			BufferedReader in = new BufferedReader(new InputStreamReader(arquivoSaida.getInputstream()));
+			String line;
+
+			StringBuffer xmlUpload = new StringBuffer();
+			while ((line = in.readLine()) != null) {
+				xmlUpload.append(line);
+				System.out.println(line);
+			}
+
+			XmlUtil util = new XmlUtil();
+			util.xmlToObject(xmlUpload.toString(), NfeProc.class);
+			setNfeSaida(convertStringToObject(xmlUpload.toString()));
+			
+			Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeSaida().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeSaida().getNFe().getInfNFe().getEmit().getCNPJ()), arquivoSaida.getFileName());
+			documento.setItens(compararNotas(documento.getId()));
+			
+			documentoSaida = documento;
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + arquivoSaida.getFileName() + " foi salvo!"));
+
+		} catch (IOException | JAXBException e) {
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
+		}
+
 	}
 
 	@SuppressWarnings("static-access")

@@ -25,49 +25,43 @@
 	</h:head>
 	
 	<body>
+
+		<div id="wrapper">
+			<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+						<span class="sr-only"></span> <span class="icon-bar"></span> <span
+							class="icon-bar"></span> <span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="index.html">CREDFiscal - Sistema de cálculo de cédito fiscal</a>
+				</div>
 	
-	    <div id="wrapper">
-	        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
-	            <div class="navbar-header">
-	                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-	                    <span class="sr-only"></span>
-	                    <span class="icon-bar"></span>
-	                    <span class="icon-bar"></span>
-	                    <span class="icon-bar"></span>
-	                </button>
-	                <a class="navbar-brand" href="index.html">CREDFiscal - Sistema de cálculo de cédito fiscal</a>
-	            </div>
+				<ul class="nav navbar-top-links navbar-right">
+					<li class="dropdown"><a class="dropdown-toggle"
+						data-toggle="dropdown" href="#"> <i class="fa fa-user fa-fw"></i>
+							<i class="fa fa-caret-down"></i>
+					</a>
+						<ul class="dropdown-menu dropdown-user">
+							<li><a href="#"><i class="fa fa-user fa-fw"></i>Perfil do
+									usuário</a></li>
+							<li class="divider"></li>
+							<li><a href="#"><i class="fa fa-sign-out fa-fw"></i> Sair</a>
+							</li>
+						</ul></li>
+				</ul>
 	
-	            <ul class="nav navbar-top-links navbar-right">
-	                <li class="dropdown">
-	                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-	                        <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
-	                    </a>
-	                    <ul class="dropdown-menu dropdown-user">
-	                        <li><a href="#"><i class="fa fa-user fa-fw"></i>Perfil do usuário</a>
-	                        </li>
-	                        <li class="divider"></li>
-	                        <li><a href="#"><i class="fa fa-sign-out fa-fw"></i> Sair</a>
-	                        </li>
-	                    </ul>
-	                </li>
-	            </ul>
-	
-	            <div class="navbar-default sidebar" role="navigation">
-	                <div class="sidebar-nav navbar-collapse">
-	                    <ul class="nav" id="side-menu">
-	                        <li>
-	                            <a href="nfe.xhtml?faces-redirect=true"><i class="fa fa-edit fa-fw"></i>NFe</a>
-	                        </li>
-	                        <li>
-	                            <a href="#"><i class="fa fa-edit fa-fw"></i>SPED</a>
-	                        </li>
-	                    </ul>
-	                </div>
-	                <!-- /.sidebar-collapse -->
-	            </div>
-	            <!-- /.navbar-static-side -->
-	        </nav>
+				<div class="navbar-default sidebar" role="navigation">
+					<div class="sidebar-nav navbar-collapse">
+						<ul class="nav" id="side-menu">
+							<li><a href="nfe.xhtml?faces-redirect=true"><i
+									class="fa fa-edit fa-fw"></i>NFe</a></li>
+							<li><a href="#"><i class="fa fa-edit fa-fw"></i>SPED</a></li>
+						</ul>
+					</div>
+					<!-- /.sidebar-collapse -->
+				</div>
+				<!-- /.navbar-static-side -->
+			</nav>
 	
 			<div id="page-wrapper">
 				<div class="row">
@@ -78,75 +72,83 @@
 				<div class="row">
 					<div class="col-lg-12">
 						<div class="panel panel-default">
-							<div class="panel-heading">
-								Inclusão de NFe
-							</div>
+							<div class="panel-heading">Inclusão de NFe</div>
 							<div class="panel-body">
 								<h:form enctype="multipart/form-data">
 									<div class="row">
 										<div class="col-lg-12">
-											<p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
+											<p:messages id="messages" showDetail="true" autoUpdate="true"
+												closable="true" />
 											<div class="form-group">
-												<p:outputLabel value="Arquivo: " />
-												<p:fileUpload fileUploadListener="#{documentoBean.upload}" 
-															  mode="advanced"
-															  fileLimit="2" 
-															  fileLimitMessage="Só é possível escolher 2 arquivos por vez."
-															  
-															  allowTypes="/(\.|\/)(xml)$/"
-															  invalidFileMessage="É permitido somente arquivo xml"
-															  
-															  label="Escolher" 
-															  uploadLabel="Enviar" 
-															  cancelLabel="Cancelar" 
-															  
-															  sequential="true"
-															  dragDropSupport="true"
-															  
-															  update="tabelaDocumentoEntrada tabelaDocumentoSaida"/>
+												<div class="col-lg-2">
+													<p:outputLabel value="Nota Entrada: " />
+												</div>
+												<div class="col-lg-6">
+													<p:fileUpload value="#{documentoBean.arquivoEntrada}"
+														mode="simple" skinSimple="true" />
+												</div>
+												<div class="col-lg-4">
+													<p:commandButton value="Comparar NCM Entrada" id="comNCMEntrada" actionListener="#{documentoBean.uploadEntrada}" update="messages tabelaDocumentoEntrada" icon="ui-icon-disk" ajax="false" />
+												</div>
 											</div>
-
-										</div>
-										
-										<div class="col-lg-12">
-											<div class="form-group">
-												<p:outputLabel value="Resultado Documento entrada: " />
-											</div>
-											<p:dataTable id="tabelaDocumentoEntrada" var="documento" value="#{documentoBean.documentoEntrada}">
-												<p:column headerText="Id">
-													<h:outputText value="#{documento.nomeNota}" />
-												</p:column>
-												<p:column headerText="Item">
-													<ui:repeat var="item" value="#{documento.itens}">
-														<p:column headerText="NCM">
-															<h:outputText value="#{item.idNcm}" />
-															<ui:repeat var="itemResult" value="#{item.itensResult}">
-																<h:outputLabel value="#{itemResult.descricao}" />
-															</ui:repeat>
-														</p:column>
-													</ui:repeat>
-												</p:column>
-											</p:dataTable>
 										</div>
 										<div class="col-lg-12">
 											<div class="form-group">
-												<p:outputLabel value="Resultado Documento saída: " />
+												<div class="col-lg-2">
+													<p:outputLabel value="Nota Saída: " />
+												</div>
+												<div class="col-lg-6">
+													<p:fileUpload value="#{documentoBean.arquivoSaida}" mode="simple" skinSimple="false" />
+												</div>
+												<div class="col-lg-4">
+													<p:commandButton value="Comparar NCM Saída" id="comNCMSaida" actionListener="#{documentoBean.uploadSaida}" update="messages" icon="ui-icon-disk" ajax="false" />
+												</div>
 											</div>
-											<p:dataTable id="tabelaDocumentoSaida" var="documento" value="#{documentoBean.documentoSaida}">
-												<p:column headerText="Id">
-													<h:outputText value="#{documento.nomeNota}" />
-												</p:column>
-												<p:column headerText="Item">
-													<ui:repeat var="item" value="#{documento.itens}">
-														<p:column headerText="NCM">
-															<h:outputText value="#{item.idNcm}" />
-															<ui:repeat var="itemResult" value="#{item.itensResult}">
-																<h:outputLabel value="#{itemResult.descricao}" />
-															</ui:repeat>
-														</p:column>
-													</ui:repeat>
-												</p:column>
-											</p:dataTable>
+										</div>
+										<div class="col-lg-12" style="height:50px;"></div>
+										<div class="col-lg-12">
+											<div class="form-group">
+												<p:dataTable id="tabelaDocumentoEntrada" var="documento" value="#{documentoBean.documentoEntrada}" rendered="#{not empty documentoBean.documentoEntrada}">
+													<f:facet name="header">
+														Resultado Documento entrada
+													</f:facet>
+													<p:column headerText="Id">
+														<h:outputText value="#{documento.nomeNota}" />
+													</p:column>
+													<p:column headerText="Item">
+														<ui:repeat var="item" value="#{documento.itens}">
+															<p:column headerText="NCM">
+																<h:outputText value="#{item.idNcm}" />
+																<ui:repeat var="itemResult" value="#{item.itensResult}">
+																	<h:outputLabel value="#{itemResult.descricao}" />
+																</ui:repeat>
+															</p:column>
+														</ui:repeat>
+													</p:column>
+												</p:dataTable>
+											</div>
+										</div>
+										<div class="col-lg-12">
+											<div class="form-group">
+												<p:dataTable id="tabelaDocumentoSaida" var="documento" value="#{documentoBean.documentoSaida}"  rendered="#{not empty documentoBean.documentoSaida}">
+													<f:facet name="header">
+														Resultado Documento saída
+													</f:facet>
+													<p:column headerText="Id">
+														<h:outputText value="#{documento.nomeNota}" />
+													</p:column>
+													<p:column headerText="Item">
+														<ui:repeat var="item" value="#{documento.itens}">
+															<p:column headerText="NCM">
+																<h:outputText value="#{item.idNcm}" />
+																<ui:repeat var="itemResult" value="#{item.itensResult}">
+																	<h:outputLabel value="#{itemResult.descricao}" />
+																</ui:repeat>
+															</p:column>
+														</ui:repeat>
+													</p:column>
+												</p:dataTable>
+											</div>
 										</div>
 									</div>
 								</h:form>
