@@ -14,11 +14,6 @@
 			<url>http://repository.primefaces.org</url>
 			<layout>default</layout>
 		</repository>
-		<repository>
-			<name>Repositorio Autocom SnapShot</name>
-			<id>Snapshot</id>
-			<url>http://www.autocomsistemas.com.br:8081/nexus/content/repositories/autocom/</url>
-		</repository>
 	</repositories>
 
 	<properties>
@@ -27,11 +22,6 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>br.com.samuelweb</groupId>
-			<artifactId>java-nfe</artifactId>
-			<version>3.10.7</version>
-		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -61,7 +51,7 @@
 		<dependency>
 			<groupId>org.primefaces</groupId>
 			<artifactId>primefaces</artifactId>
-			<version>5.0</version>
+    <version>6.0</version>
 		</dependency>
 		<!-- JSP Library -->
 		<dependency>

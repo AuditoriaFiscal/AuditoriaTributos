@@ -19,6 +19,7 @@ import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.UploadedFile;
 
 import br.com.costa.credfiscal.util.NFCompareUtils;
+import br.com.costa.credfiscal.util.NotaUtil;
 import br.com.costa.fiscalcred.model.Documento;
 import br.com.costa.fiscalcred.model.DocumentoItem;
 import br.com.costa.fiscalcred.model.DocumentoItemResult;
@@ -26,7 +27,6 @@ import br.com.costa.fiscalcred.model.NCM;
 import br.com.costa.fiscalcred.model.nfe.Det;
 import br.com.costa.fiscalcred.model.nfe.NfeProc;
 import br.com.costa.fiscalcred.service.DocumentoService;
-import br.com.samuelweb.nfe.util.XmlUtil;
 
 @ManagedBean
 @SessionScoped
@@ -126,7 +126,7 @@ public class DocumentoBean {
 	
 	@SuppressWarnings("static-access")
 	private static NfeProc convertStringToObject(String xmlStr) {
-		XmlUtil util = new XmlUtil();
+		NotaUtil util = new NotaUtil();
 		try {
 			String xml = util.replacesNfe(xmlStr);
 			NfeProc nfe = util.xmlToObject(xml, NfeProc.class);
@@ -149,7 +149,7 @@ public class DocumentoBean {
 				System.out.println(line);
 			}
 			
-			XmlUtil util = new XmlUtil();
+			NotaUtil util = new NotaUtil();
 			util.xmlToObject(xmlUpload.toString(), NfeProc.class);
 			setNfeEntrada(convertStringToObject(xmlUpload.toString()));
 			Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), arquivoEntrada.getFileName());
@@ -177,7 +177,7 @@ public class DocumentoBean {
 				System.out.println(line);
 			}
 
-			XmlUtil util = new XmlUtil();
+			NotaUtil util = new NotaUtil();
 			util.xmlToObject(xmlUpload.toString(), NfeProc.class);
 			setNfeSaida(convertStringToObject(xmlUpload.toString()));
 			
@@ -209,7 +209,7 @@ public class DocumentoBean {
 					System.out.println(line);
 				}
 				
-				XmlUtil util = new XmlUtil();
+				NotaUtil util = new NotaUtil();
 				util.xmlToObject(xmlUpload.toString(), NfeProc.class);
 				setNfeEntrada(convertStringToObject(xmlUpload.toString()));
 				Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), event.getFile().getFileName());
@@ -230,7 +230,7 @@ public class DocumentoBean {
 					System.out.println(line);
 				}
 
-				XmlUtil util = new XmlUtil();
+				NotaUtil util = new NotaUtil();
 				util.xmlToObject(xmlUpload.toString(), NfeProc.class);
 				setNfeSaida(convertStringToObject(xmlUpload.toString()));
 				
