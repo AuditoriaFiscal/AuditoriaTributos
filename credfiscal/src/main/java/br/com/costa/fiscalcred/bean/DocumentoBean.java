@@ -159,6 +159,8 @@ public class DocumentoBean {
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + arquivoEntrada.getFileName() + " foi salvo!"));
 		} catch (IOException | JAXBException e) {
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
+		} catch (Exception e) {
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro inesperado, informe o administrador.", e.getMessage()));
 		}
 
 	}
@@ -187,8 +189,9 @@ public class DocumentoBean {
 
 		} catch (IOException | JAXBException e) {
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
+		} catch (Exception e) {
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro inesperado, informe o administrador.", e.getMessage()));
 		}
-
 	}
 
 	@SuppressWarnings("static-access")
