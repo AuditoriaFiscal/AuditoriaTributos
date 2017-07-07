@@ -105,6 +105,13 @@
 												</div>
 											</div>
 										</div>
+										<div class="col-lg-12">
+											<div class="form-group">
+												<div class="col-lg-4">
+													<p:commandButton value="Comparar NCM's Entrada e Saida" id="comNCMEntradaSaida" actionListener="#{documentoBean.compararNotasEntradaSaida}" update="@form" icon="ui-icon-disk" ajax="false" />
+												</div>
+											</div>
+										</div>
 										<div class="col-lg-12" style="height:50px;"></div>
 										<div class="col-lg-12">
 											<div class="form-group">
@@ -126,6 +133,10 @@
 														</ui:repeat>
 													</p:column>
 												</p:dataTable>
+												    <h:commandLink>
+												        <p:graphicImage name="/demo/images/excel.png" />
+												        <p:dataExporter type="xls" target="tabelaDocumentoEntrada" fileName="Resultado Documento entrada - #{documento.nomeNota}" pageOnly="false"/>
+												    </h:commandLink>
 											</div>
 										</div>
 										<div class="col-lg-12">
@@ -145,6 +156,29 @@
 																	<h:outputLabel value="#{itemResult.descricao}" />
 																</ui:repeat>
 															</p:column>
+														</ui:repeat>
+													</p:column>
+												</p:dataTable>
+											</div>
+										</div>
+										<div class="col-lg-12" style="height:50px;"></div>
+										<div class="col-lg-12">
+											<div class="form-group">
+												<p:dataTable id="tabelaCamparacaoNfs" var="documento" value="#{documentoBean.documentoEntrada}" rendered="#{not empty documentoBean.documentoEntrada}">
+													<f:facet name="header">
+														Resultado da comparação dos Documento Entrada - Saida
+													</f:facet> 	
+													<p:column headerText="Id">
+														<h:outputText value="#{documento.nomeNota}" />
+													</p:column>
+													<p:column headerText="Item">
+														<ui:repeat var="item" value="#{documento.itens}">
+																<ui:repeat var="itemResult" value="#{item.itensResultNotasCompare}">
+																<p:column headerText="NCM">
+																<h:outputText value="#{item.idNcm}" />
+																	<h:outputLabel value="#{itemResult.descricao}" />
+																</p:column>
+																</ui:repeat>
 														</ui:repeat>
 													</p:column>
 												</p:dataTable>
