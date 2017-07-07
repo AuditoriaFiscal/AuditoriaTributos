@@ -33,8 +33,11 @@ public class DocumentoItem {
 	
 	@Transient
 	private List<DocumentoItemResult> itensResult;
+
+	@Transient
+	private List<DocumentoItemResult> itensResultNotasCompare;
 	
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
 
@@ -72,6 +75,14 @@ public class DocumentoItem {
 
 	public void setItensResult(List<DocumentoItemResult> itensResult) {
 		this.itensResult = itensResult;
+	}
+
+	public List<DocumentoItemResult> getItensResultNotasCompare() {
+		return itensResultNotasCompare;
+	}
+
+	public void setItensResultNotasCompare(List<DocumentoItemResult> itensResultNotasCompare) {
+		this.itensResultNotasCompare = itensResultNotasCompare;
 	}
 	
 }

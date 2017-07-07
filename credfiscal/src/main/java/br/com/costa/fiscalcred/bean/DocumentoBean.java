@@ -285,6 +285,49 @@ public class DocumentoBean {
 		return itens;
 	}
 	
+	public void compararNotasEntradaSaida() {
+		if(null != documentoEntrada && null!= documentoSaida){
+			for (DocumentoItem itemEntrada : documentoEntrada.getItens()) {
+				itemEntrada.setItensResultNotasCompare(new ArrayList<>());
+				boolean find = false;
+				for (DocumentoItem itemSaida : documentoSaida.getItens()) {
+					if(itemEntrada.getId().equals(itemSaida.getId())){
+						if(!itemEntrada.getDescricao().equals(itemSaida.getDescricao())) {
+							DocumentoItemResult result = new DocumentoItemResult();
+							
+							result.setId(itemEntrada.getId());
+							result.setIdDocumentoItem(itemEntrada.getIdDocumento());
+							
+							StringBuilder resultadoCompare = new StringBuilder()
+									.append("Descrição incompatível com código NCM " +itemEntrada.getId())
+									.append(" - Esperado : \"" + itemEntrada.getDescricao() + "\"")
+									.append(" - Obtido : \"" + itemEntrada.getDescricao() + "\"");
+							result.setDescricao(resultadoCompare.toString());
+
+							itemEntrada.getItensResultNotasCompare().add(result);
+							find = true;
+						}else {
+							find = true;
+						}
+					}
+				}
+				if(!find) {
+					DocumentoItemResult result = new DocumentoItemResult();
+					
+					result.setId(itemEntrada.getId());
+					result.setIdDocumentoItem(itemEntrada.getIdDocumento());
+					
+					StringBuilder resultadoCompare = new StringBuilder()
+							.append("Código NCM '" +itemEntrada.getId() + "' e descrição '")
+							.append(itemEntrada.getDescricao() + "' não encontrados no documento de saida.");
+					result.setDescricao(resultadoCompare.toString());
+
+					itemEntrada.getItensResultNotasCompare().add(result);
+				}
+			}
+		}
+	}
+	
 	public void handleFileUpload(FileUploadEvent event) {
 		FacesMessage message = new FacesMessage("Succesful", event.getFile().getFileName() + " is uploaded.");
 		FacesContext.getCurrentInstance().addMessage(null, message);
