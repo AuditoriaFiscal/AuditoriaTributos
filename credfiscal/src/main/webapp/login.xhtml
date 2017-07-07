@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:f="http://java.sun.com/jsf/core"
-      xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:a="http://xmlns.jcp.org/jsf/passthrough">
+	  xmlns:f="http://java.sun.com/jsf/core"
+	  xmlns:h="http://java.sun.com/jsf/html"
+	  xmlns:p="http://primefaces.org/ui"
+	  xmlns:a="http://xmlns.jcp.org/jsf/passthrough">
 
-<head>
-<meta charset="UTF-8" />
-<title>CREDFiscal - Login</title>
-
-<link rel="stylesheet" href="css/reset.min.css" />
-<link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900|RobotoDraft:400,100,300,500,700,900' />
-<link rel='stylesheet prefetch' href='bs/vendor/font-awesome/css/font-awesome.min.css' />
-<link rel="stylesheet" href="css/style.css" />
-</head>
+<h:head>
+	<meta charset="UTF-8" />
+	<title>CREDFiscal - Login</title>
+	
+	<link rel="stylesheet" href="css/reset.min.css" />
+	<link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900|RobotoDraft:400,100,300,500,700,900' />
+	<link rel='stylesheet prefetch' href='bs/vendor/font-awesome/css/font-awesome.min.css' />
+	<link rel="stylesheet" href="css/style.css" />
+</h:head>
 
 <body>
 	<div class="pen-title">
@@ -28,9 +29,10 @@
 		<div class="form">
 			<h2>Preencha os dados abaixo</h2>
 			<h:form>
+				<p:messages id="messages" autoUpdate="true" closable="true" />
 				<h:inputText value="#{loginBean.usuario.usuario}" id="username" a:placeholder="Usuario" />
 				<h:inputSecret value="#{loginBean.usuario.senha}" id="password" a:placeholder="Senha" />
-				<h:commandButton id="button" value="Login" action="#{loginBean.doLogin}" />
+				<h:commandButton id="button" value="Login" action="#{loginBean.doLogin}" update="messages" />
 			</h:form>
 		</div>
 		<!-- div class="form">

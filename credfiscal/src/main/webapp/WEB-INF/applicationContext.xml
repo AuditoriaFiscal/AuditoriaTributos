@@ -18,10 +18,9 @@
 	<!-- Define EclipseLink JPA Vendor Adapter -->
 	<bean id="jpaVendorAdapter"
 		class="org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter">
-		<property name="databasePlatform"
-			value="org.eclipse.persistence.platform.database.MySQLPlatform" />
+		<property name="databasePlatform" value="org.eclipse.persistence.platform.database.MySQLPlatform" />
 		<property name="generateDdl" value="false" />
-		<property name="showSql" value="true" />
+		<property name="showSql" value="false" />
 	</bean>
 	
 	<!-- Entity Manager Factory -->

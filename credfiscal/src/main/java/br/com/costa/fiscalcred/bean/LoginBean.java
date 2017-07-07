@@ -71,10 +71,10 @@ public class LoginBean {
 			this.loggedIn = true;
 			return redirectToWelcome();
 		}else{
-			FacesMessage msg = new FacesMessage("Usuário ou Senha inválido!", "ERROR MSG");
+			FacesMessage msg = new FacesMessage("Usuário ou Senha inválido!");
 			msg.setSeverity(FacesMessage.SEVERITY_ERROR);
 			FacesContext.getCurrentInstance().addMessage(null, msg);
-			return redirectToLogin();
+			return null;
 		}
 
 	}
