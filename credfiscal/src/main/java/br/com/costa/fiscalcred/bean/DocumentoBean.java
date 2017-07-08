@@ -10,6 +10,7 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
+import javax.persistence.Column;
 import javax.persistence.Query;
 import javax.xml.bind.JAXBException;
 
@@ -17,9 +18,12 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.hibernate.annotations.Type;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.UploadedFile;
 
+import br.com.costa.credfiscal.util.DocumentoConstants;
+import br.com.costa.credfiscal.util.MensagensConstants;
 import br.com.costa.credfiscal.util.NFCompareUtils;
 import br.com.costa.credfiscal.util.NotaUtil;
 import br.com.costa.fiscalcred.model.Documento;
@@ -33,13 +37,13 @@ import br.com.costa.fiscalcred.service.DocumentoService;
 @ManagedBean
 @SessionScoped
 public class DocumentoBean {
-	
+
 	@ManagedProperty("#{documentoService}")
 	private DocumentoService documentoService;
 
 	List<UploadedFile> arquivosLote;
 	List<Documento> documentosLote;
-	
+
 	private UploadedFile arquivoEntrada;
 	private UploadedFile arquivoSaida;
 
@@ -91,7 +95,7 @@ public class DocumentoBean {
 	public void setNfeSaida(NfeProc nfeSaida) {
 		this.nfeSaida = nfeSaida;
 	}
-	
+
 	public String getNomeArquivoEntrada() {
 		return nomeArquivoEntrada;
 	}
@@ -103,10 +107,11 @@ public class DocumentoBean {
 	public String getNomeArquivoSaida() {
 		return nomeArquivoSaida;
 	}
+
 	public void setNomeArquivoSaida(String nomeArquivoSaida) {
 		this.nomeArquivoSaida = nomeArquivoSaida;
 	}
-	
+
 	public Documento getDocumentoEntrada() {
 		return documentoEntrada;
 	}
@@ -122,7 +127,7 @@ public class DocumentoBean {
 	public void setDocumentoSaida(Documento documentoSaida) {
 		this.documentoSaida = documentoSaida;
 	}
-	
+
 	public List<UploadedFile> getArquivosLote() {
 		return arquivosLote;
 	}
@@ -130,7 +135,7 @@ public class DocumentoBean {
 	public void setArquivosLote(List<UploadedFile> arquivosLote) {
 		this.arquivosLote = arquivosLote;
 	}
-	
+
 	public List<Documento> getDocumentosLote() {
 		return documentosLote;
 	}
@@ -140,13 +145,13 @@ public class DocumentoBean {
 	}
 
 	@PostConstruct
-	private void doInit(){
+	private void doInit() {
 		arquivosLote = new ArrayList<UploadedFile>();
 		documentosLote = new ArrayList<Documento>();
 		arquivoEntrada = null;
 		arquivoSaida = null;
 	}
-	
+
 	@SuppressWarnings("static-access")
 	private static NfeProc convertStringToObject(String xmlStr) {
 		NotaUtil util = new NotaUtil();
@@ -159,28 +164,34 @@ public class DocumentoBean {
 		}
 		return null;
 	}
-	
+
 	@SuppressWarnings("static-access")
 	public void uploadEntrada() {
 		try {
 			StringBuffer xmlUpload = new StringBuffer();
-			
+
 			NotaUtil util = new NotaUtil();
 			util.xmlToObject(xmlUpload.toString(), NfeProc.class);
 			setNfeEntrada(convertStringToObject(xmlUpload.toString()));
-			Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), arquivoEntrada.getFileName());
+			Documento documento = crateDocumento(xmlUpload.toString(),
+					new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()),
+					new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), arquivoEntrada.getFileName());
 			documento.setItens(compararNotas(documento.getId()));
-			
+
 			documentoEntrada = documento;
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + arquivoEntrada.getFileName() + " foi salvo!"));
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(MensagensConstants.MSG_UPLOAD_COMPLETO, MensagensConstants.INICIO_MSG_ARQUIVO_SALVO
+							+ arquivoEntrada.getFileName() + MensagensConstants.FIM_MSG_ARQUIVO_SALVO));
 		} catch (JAXBException e) {
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
 		} catch (Exception e) {
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro inesperado, informe o administrador.", e.getMessage()));
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, MensagensConstants.ERRO_INESPERADO, e.getMessage()));
 		}
 
 	}
-	
+
 	@SuppressWarnings("static-access")
 	public void uploadSaida() {
 		try {
@@ -189,156 +200,194 @@ public class DocumentoBean {
 			NotaUtil util = new NotaUtil();
 			util.xmlToObject(xmlUpload.toString(), NfeProc.class);
 			setNfeSaida(convertStringToObject(xmlUpload.toString()));
-			
-			Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeSaida().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeSaida().getNFe().getInfNFe().getEmit().getCNPJ()), arquivoSaida.getFileName());
+
+			Documento documento = crateDocumento(xmlUpload.toString(),
+					new Long(getNfeSaida().getNFe().getInfNFe().getIde().getcNF()),
+					new Long(getNfeSaida().getNFe().getInfNFe().getEmit().getCNPJ()), arquivoSaida.getFileName());
 			documento.setItens(compararNotas(documento.getId()));
-			
+
 			documentoSaida = documento;
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + arquivoSaida.getFileName() + " foi salvo!"));
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(MensagensConstants.MSG_UPLOAD_COMPLETO, MensagensConstants.INICIO_MSG_ARQUIVO_SALVO
+							+ arquivoSaida.getFileName() + MensagensConstants.FIM_MSG_ARQUIVO_SALVO));
 		} catch (JAXBException e) {
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
 		} catch (Exception e) {
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro inesperado, informe o administrador.", e.getMessage()));
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, MensagensConstants.ERRO_INESPERADO, e.getMessage()));
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<DocumentoItem> compararNotas(Long idDocumento){
+	public List<DocumentoItem> compararNotas(Long idDocumento) {
 
 		List<DocumentoItem> itens = new ArrayList<DocumentoItem>();
 
 		Det[] itensNota = getNfeEntrada().getNFe().getInfNFe().getDet();
-		
-		for(int i = 0; itensNota.length > i; i++){
-			List<DocumentoItemResult> itensResult = new ArrayList<DocumentoItemResult>();
-			
-			DocumentoItem item = gravaDadosDocumento(itensNota[i].getProd().getxProd(), idDocumento, new Long(itensNota[i].getProd().getNCM()));
 
-			Query q = documentoService.getEm()
-					.createNativeQuery("SELECT n.* FROM NCM n WHERE n.id = ? ", NCM.class)
+		for (int i = 0; itensNota.length > i; i++) {
+			List<DocumentoItemResult> itensResult = new ArrayList<DocumentoItemResult>();
+
+			DocumentoItem item = gravaDadosDocumento(itensNota[i].getProd().getxProd(), idDocumento,
+					new Long(itensNota[i].getProd().getNCM()));
+
+			Query q = documentoService.getEm().createNativeQuery(DocumentoConstants.SELECT_NCM, NCM.class)
 					.setParameter(1, itensNota[i].getProd().getNCM());
 
 			List<NCM> lista = q.getResultList();
-			
+
 			if (lista.size() > 0) {
-				
+
 				DocumentoItemResult itemResult = new DocumentoItemResult();
 				NCM ncm = lista.get(0);
 				itensNota[i].getProd().setComparadorNCM(NFCompareUtils.compareNFDescription(ncm, itensNota[i]));
-				if(!itensNota[i].getProd().isComparadorNCM()){
-					 itemResult = gravaDadosDocumentoResult("Descrição incompatível com código NCM " + itensNota[i].getProd().getNCM() + 
-											  " - Esperado : \"" + ncm.getDescricao() + "\"" + 
-											  " - Obtido : \"" + itensNota[i].getProd().getxProd() + "\"", item.getId());
-					itensResult.add(itemResult);
+				if (!itensNota[i].getProd().isComparadorNCM()) {
+					itensResult.add(gravaDadosDocumentoResult(Long.parseLong(itensNota[i].getProd().getCProd()),
+							Long.parseLong(itensNota[i].getProd().getNItemPed()), itensNota[i].getProd().getNCM(),
+							ncm.getDescricao()));
 				}
-			}else{
-				DocumentoItemResult itemResult = gravaDadosDocumentoResult("Código NCM " + itensNota[i].getProd().getNCM() + " não localizado", item.getId());
-				itensResult.add(itemResult);
+			} else {
+				itensResult
+						.add(gravaDadosDocumentoResultNaoEncontrado(Long.parseLong(itensNota[i].getProd().getCProd()),
+								Long.parseLong(itensNota[i].getProd().getNItemPed()), itensNota[i].getProd().getNCM()));
 			}
-			
+
 			item.setItensResult(itensResult);
 			itens.add(item);
 		}
-		
+
 		return itens;
 	}
-	
+
 	public void compararNotasEntradaSaida() {
-		if(null != documentoEntrada && null!= documentoSaida){
+		if (null != documentoEntrada && null != documentoSaida) {
 			for (DocumentoItem itemEntrada : documentoEntrada.getItens()) {
 				itemEntrada.setItensResultNotasCompare(new ArrayList<>());
 				boolean find = false;
 				for (DocumentoItem itemSaida : documentoSaida.getItens()) {
-					if(itemEntrada.getIdNcm().equals(itemSaida.getIdNcm())){
-						if(!itemEntrada.getDescricao().equals(itemSaida.getDescricao())) {
-							DocumentoItemResult result = new DocumentoItemResult();
-							
-							result.setId(itemEntrada.getId());
-							result.setIdDocumentoItem(itemEntrada.getIdDocumento());
-							
-							StringBuilder resultadoCompare = new StringBuilder()
-									.append("Descrição incompatível com código NCM " +itemEntrada.getIdNcm())
-									.append(" - Esperado : \"" + itemEntrada.getDescricao() + "\"")
-									.append(" - Obtido : \"" + itemEntrada.getDescricao() + "\"");
-//							result.setDescricao(resultadoCompare.toString());
-
-							itemEntrada.getItensResultNotasCompare().add(result);
+					if (itemEntrada.getIdNcm().equals(itemSaida.getIdNcm())) {
+						if (!itemEntrada.getDescricao().equals(itemSaida.getDescricao())) {
+							itemEntrada.getItensResultNotasCompare()
+									.add(createDocumentoResultInconsistente(itemEntrada.getIdDocumento(),
+											itemEntrada.getIdNcm(), itemEntrada.getDescricao(),
+											itemEntrada.getDescricao()));
 							find = true;
-						}else {
+						} else {
 							find = true;
 						}
 					}
 				}
-				if(!find) {
-					DocumentoItemResult result = new DocumentoItemResult();
-					
-					result.setId(itemEntrada.getId());
-					result.setIdDocumentoItem(itemEntrada.getIdDocumento());
-					
-					StringBuilder resultadoCompare = new StringBuilder()
-							.append("Código NCM '" +itemEntrada.getIdNcm() + "' e descrição '")
-							.append(itemEntrada.getDescricao() + "' não encontrados no documento de saida.");
-//					result.setDescricao(resultadoCompare.toString());
-
-					itemEntrada.getItensResultNotasCompare().add(result);
+				if (!find) {
+					itemEntrada.getItensResultNotasCompare().add(createDocumentoResultNaoEncontrado(
+							itemEntrada.getIdDocumento(), itemEntrada.getIdNcm(), itemEntrada.getDescricao()));
 				}
 			}
 		}
 	}
 
-	public Documento crateDocumento(String xml, Long numeroNF, Long cnpj, String nomeArquivo){
-		
+	public DocumentoItemResult createDocumentoResultInconsistente(long idDocumento, long idNcm,
+			String descricaoEsperada, String descricaoEncontrada) {
+
+		DocumentoItemResult result = new DocumentoItemResult();
+
+		result.setIdDocumentoItem(idDocumento);
+		result.setIdNcm(idNcm);
+		result.setDescricaoEsperada(descricaoEsperada);
+		result.setDescricaoEncontrada(descricaoEncontrada);
+
+		result.setFlDescricaoNaoEncontrada(false);
+
+		return result;
+	}
+
+	public DocumentoItemResult createDocumentoResultNaoEncontrado(long idDocumento, long idNcm,
+			String descricaoEsperada) {
+
+		DocumentoItemResult result = new DocumentoItemResult();
+
+		result.setIdDocumentoItem(idDocumento);
+		result.setIdNcm(idNcm);
+		result.setDescricaoNaoEncontrada(descricaoEsperada);
+
+		result.setFlDescricaoNaoEncontrada(true);
+
+		return result;
+	}
+
+	public Documento crateDocumento(String xml, Long numeroNF, Long cnpj, String nomeArquivo) {
+
 		Documento documento = new Documento();
-		
+
 		documento.setNota(xml);
 		documento.setCnpj(cnpj);
 		documento.setNumeroNF(numeroNF);
 		documento.setNomeNota(nomeArquivo);
-		
+
 		return documentoService.register(documento);
 	}
-	
-	public DocumentoItem gravaDadosDocumento(String descricao, Long idDocumento, Long idNcm){
+
+	public DocumentoItem gravaDadosDocumento(String descricao, Long idDocumento, Long idNcm) {
 		DocumentoItem item = new DocumentoItem();
-		
+
 		item.setDescricao(descricao);
 		item.setIdDocumento(idDocumento);
 		item.setIdNcm(idNcm);
-		
+
 		return documentoService.registerItem(item);
 	}
-	
-	public DocumentoItemResult gravaDadosDocumentoResult(String descricao, Long idDocumentoItem){
+
+	public DocumentoItemResult gravaDadosDocumentoResult(long idNcm, long idDocumentoItem, String descricaoEsperada,
+			String descricaoEncontrada) {
 		DocumentoItemResult itemResult = new DocumentoItemResult();
-		
-//		itemResult.setDescricao(descricao);
+
+		itemResult.setIdNcm(idNcm);
 		itemResult.setIdDocumentoItem(idDocumentoItem);
-		
+		itemResult.setDescricaoEsperada(descricaoEsperada);
+		itemResult.setDescricaoEncontrada(descricaoEncontrada);
+		itemResult.setFlDescricaoNaoEncontrada(false);
+
 		return documentoService.registerItemResult(itemResult);
 	}
-	
+
+	public DocumentoItemResult gravaDadosDocumentoResultNaoEncontrado(long idNcm, long idDocumentoItem,
+			String descricaoEsperada) {
+		DocumentoItemResult itemResult = new DocumentoItemResult();
+
+		itemResult.setIdNcm(idNcm);
+		itemResult.setIdDocumentoItem(idDocumentoItem);
+		itemResult.setDescricaoNaoEncontrada(descricaoEsperada);
+		itemResult.setFlDescricaoNaoEncontrada(true);
+
+		return documentoService.registerItemResult(itemResult);
+	}
+
 	@SuppressWarnings("static-access")
 	public void upload(FileUploadEvent event) {
 		try {
 			UploadedFile arquivo = event.getFile();
 
 			StringBuffer xmlUpload = new StringBuffer();
-			
+
 			NotaUtil util = new NotaUtil();
 			util.xmlToObject(xmlUpload.toString(), NfeProc.class);
 			setNfeEntrada(convertStringToObject(xmlUpload.toString()));
-			Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), event.getFile().getFileName());
+			Documento documento = crateDocumento(xmlUpload.toString(),
+					new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()),
+					new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), event.getFile().getFileName());
 			documento.setItens(compararNotas(documento.getId()));
-			
+
 			this.arquivosLote.add(arquivo);
 			this.documentosLote.add(documento);
-			
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
+
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
 		} catch (JAXBException e) {
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
 		}
 	}
-	
+
 	@SuppressWarnings("resource")
 	public void exportExcel() {
 		XSSFWorkbook workbook = new XSSFWorkbook();
@@ -352,12 +401,12 @@ public class DocumentoBean {
 			writeBook(documento, row);
 		}
 	}
-	
+
 	private void writeBook(Documento documento, Row row) {
 		Cell cell = row.createCell(1);
 		cell.setCellValue(documento.getNomeNota());
 
-		for(DocumentoItem item : documento.getItens()){
+		for (DocumentoItem item : documento.getItens()) {
 			cell = row.createCell(2);
 			cell.setCellValue(item.getIdNcm());
 		}

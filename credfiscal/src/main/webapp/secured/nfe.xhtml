@@ -65,21 +65,36 @@
 										<div class="col-lg-12" style="height:50px;"></div>
 										<div class="col-lg-12">
 											<div class="form-group">
-												<p:dataTable id="tabelaDocumentoEntrada" var="documento" value="#{documentoBean.documentoEntrada}" rendered="#{not empty documentoBean.documentoEntrada}">
+												<p:dataTable id="tabelaDocumentoEntrada" var="documento" value="#{documentoBean.documentoEntrada}" 
+													paginator="false" 
+													rows="10"
+                 									paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+													emptyMessage="Compare a nota de entrada" 
+													rendered="true">
 													<f:facet name="header">
-														Resultado Documento entrada
-													</f:facet> 	
-													<p:column headerText="Id">
-														<h:outputText value="#{documento.nomeNota}" />
-													</p:column>
+														<p:column headerText="resultadoNotaEntradaHeader">
+           													 <h:outputText value="Resultado Documento entrada" />
+        												</p:column>
+														<p:column headerText="Id do documento " rowspan="2">
+															<h:outputText value="#{documento.nomeNota}" />
+														</p:column>
+													</f:facet>
 													<p:column headerText="Item">
 														<ui:repeat var="item" value="#{documento.itens}">
-															<p:column headerText="NCM">
-																<h:outputText value="#{item.idNcm}" />
-																<ui:repeat var="itemResult" value="#{item.itensResult}">
-																	<h:outputLabel value="#{itemResult.descricao}" />
-																</ui:repeat>
+															<ui:repeat var="itemResult" value="#{item.itensResult}">
+															<p:column headerText="ID NCM">
+																<h:outputText value="#{itemResult.idNcm}" />
 															</p:column>
+															<p:column headerText="ID ITEM DOCUMENTO">
+																<h:outputText value="#{itemResult.idDocumentoItem}" />
+															</p:column>
+															<p:column headerText="DESCRIÇÃO ESPERADA">
+																<h:outputText value="#{itemResult.descricaoEsperada}" />
+															</p:column>
+															<p:column headerText="DESCRIÇÃO ENCONTRADA">
+																<h:outputText value="#{itemResult.descricaoEncontrada}" />
+															</p:column>
+															</ui:repeat>
 														</ui:repeat>
 													</p:column>
 												</p:dataTable>
@@ -89,51 +104,51 @@
 												    </h:commandLink>
 											</div>
 										</div>
-										<div class="col-lg-12">
-											<div class="form-group">
-												<p:dataTable id="tabelaDocumentoSaida" var="documento" value="#{documentoBean.documentoSaida}"  rendered="#{not empty documentoBean.documentoSaida}">
-													<f:facet name="header">
-														Resultado Documento saída
-													</f:facet>
-													<p:column headerText="Id">
-														<h:outputText value="#{documento.nomeNota}" />
-													</p:column>
-													<p:column headerText="Item">
-														<ui:repeat var="item" value="#{documento.itens}">
-															<p:column headerText="NCM">
-																<h:outputText value="#{item.idNcm}" />
-																<ui:repeat var="itemResult" value="#{item.itensResult}">
-																	<h:outputLabel value="#{itemResult.descricao}" />
-																</ui:repeat>
-															</p:column>
-														</ui:repeat>
-													</p:column>
-												</p:dataTable>
-											</div>
-										</div>
-										<div class="col-lg-12" style="height:50px;"></div>
-										<div class="col-lg-12">
-											<div class="form-group">
-												<p:dataTable id="tabelaCamparacaoNfs" var="documento" value="#{documentoBean.documentoEntrada}" rendered="#{not empty documentoBean.documentoEntrada}">
-													<f:facet name="header">
-														Resultado da comparação dos Documento Entrada - Saida
-													</f:facet> 	
-													<p:column headerText="Id">
-														<h:outputText value="#{documento.nomeNota}" />
-													</p:column>
-													<p:column headerText="Item">
-														<ui:repeat var="item" value="#{documento.itens}">
-																<ui:repeat var="itemResult" value="#{item.itensResultNotasCompare}">
-																<p:column headerText="NCM">
-																<h:outputText value="#{item.idNcm}" />
-																	<h:outputLabel value="#{itemResult.descricao}" />
-																</p:column>
-																</ui:repeat>
-														</ui:repeat>
-													</p:column>
-												</p:dataTable>
-											</div>
-										</div>
+<!-- 										<div class="col-lg-12"> -->
+<!-- 											<div class="form-group"> -->
+<!-- 												<p:dataTable id="tabelaDocumentoSaida" var="documento" value="#{documentoBean.documentoSaida}"  rendered="#{not empty documentoBean.documentoSaida}"> -->
+<!-- 													<f:facet name="header"> -->
+<!-- 														Resultado Documento saída -->
+<!-- 													</f:facet> -->
+<!-- 													<p:column headerText="Id"> -->
+<!-- 														<h:outputText value="#{documento.nomeNota}" /> -->
+<!-- 													</p:column> -->
+<!-- 													<p:column headerText="Item"> -->
+<!-- 														<ui:repeat var="item" value="#{documento.itens}"> -->
+<!-- 															<p:column headerText="NCM"> -->
+<!-- 																<h:outputText value="#{item.idNcm}" /> -->
+<!-- 																<ui:repeat var="itemResult" value="#{item.itensResult}"> -->
+<!-- 																	<h:outputLabel value="#{itemResult.descricao}" /> -->
+<!-- 																</ui:repeat> -->
+<!-- 															</p:column> -->
+<!-- 														</ui:repeat> -->
+<!-- 													</p:column> -->
+<!-- 												</p:dataTable> -->
+<!-- 											</div> -->
+<!-- 										</div> -->
+<!-- 										<div class="col-lg-12" style="height:50px;"></div> -->
+<!-- 										<div class="col-lg-12"> -->
+<!-- 											<div class="form-group"> -->
+<!-- 												<p:dataTable id="tabelaCamparacaoNfs" var="documento" value="#{documentoBean.documentoEntrada}" rendered="#{not empty documentoBean.documentoEntrada}"> -->
+<!-- 													<f:facet name="header"> -->
+<!-- 														Resultado da comparação dos Documento Entrada - Saida -->
+<!-- 													</f:facet> 	 -->
+<!-- 													<p:column headerText="Id"> -->
+<!-- 														<h:outputText value="#{documento.nomeNota}" /> -->
+<!-- 													</p:column> -->
+<!-- 													<p:column headerText="Item"> -->
+<!-- 														<ui:repeat var="item" value="#{documento.itens}"> -->
+<!-- 																<ui:repeat var="itemResult" value="#{item.itensResultNotasCompare}"> -->
+<!-- 																<p:column headerText="NCM"> -->
+<!-- 																<h:outputText value="#{item.idNcm}" /> -->
+<!-- 																	<h:outputLabel value="#{itemResult.descricao}" /> -->
+<!-- 																</p:column> -->
+<!-- 																</ui:repeat> -->
+<!-- 														</ui:repeat> -->
+<!-- 													</p:column> -->
+<!-- 												</p:dataTable> -->
+<!-- 											</div> -->
+<!-- 										</div> -->
 									</div>
 								</h:form>
 							</div>
