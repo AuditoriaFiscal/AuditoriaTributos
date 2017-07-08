@@ -1,5 +1,10 @@
 package br.com.costa.fiscalcred.bean;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -10,7 +15,6 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
-import javax.persistence.Column;
 import javax.persistence.Query;
 import javax.xml.bind.JAXBException;
 
@@ -18,7 +22,6 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.hibernate.annotations.Type;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.UploadedFile;
 
@@ -168,9 +171,15 @@ public class DocumentoBean {
 	@SuppressWarnings("static-access")
 	public void uploadEntrada() {
 		try {
+			BufferedReader in = new BufferedReader(new InputStreamReader(arquivoEntrada.getInputstream()));
+			String line;
 			StringBuffer xmlUpload = new StringBuffer();
-
+			while ((line = in.readLine()) != null) {
+				xmlUpload.append(line);
+			}
+			
 			NotaUtil util = new NotaUtil();
+			util.replacesNfe(xmlUpload.toString());
 			util.xmlToObject(xmlUpload.toString(), NfeProc.class);
 			setNfeEntrada(convertStringToObject(xmlUpload.toString()));
 			Documento documento = crateDocumento(xmlUpload.toString(),
@@ -195,8 +204,13 @@ public class DocumentoBean {
 	@SuppressWarnings("static-access")
 	public void uploadSaida() {
 		try {
+			BufferedReader in = new BufferedReader(new InputStreamReader(arquivoEntrada.getInputstream()));
+			String line;
 			StringBuffer xmlUpload = new StringBuffer();
-
+			while ((line = in.readLine()) != null) {
+				xmlUpload.append(line);
+			}
+			
 			NotaUtil util = new NotaUtil();
 			util.xmlToObject(xmlUpload.toString(), NfeProc.class);
 			setNfeSaida(convertStringToObject(xmlUpload.toString()));
@@ -229,28 +243,25 @@ public class DocumentoBean {
 		for (int i = 0; itensNota.length > i; i++) {
 			List<DocumentoItemResult> itensResult = new ArrayList<DocumentoItemResult>();
 
-			DocumentoItem item = gravaDadosDocumento(itensNota[i].getProd().getxProd(), idDocumento,
-					new Long(itensNota[i].getProd().getNCM()));
-
-			Query q = documentoService.getEm().createNativeQuery(DocumentoConstants.SELECT_NCM, NCM.class)
-					.setParameter(1, itensNota[i].getProd().getNCM());
-
+			DocumentoItem item = gravaDadosDocumento(itensNota[i].getProd().getxProd(), idDocumento,new Long(itensNota[i].getProd().getNCM()));
+			Query q = documentoService.getEm().createNativeQuery(DocumentoConstants.SELECT_NCM, NCM.class).setParameter(1, itensNota[i].getProd().getNCM());
 			List<NCM> lista = q.getResultList();
 
 			if (lista.size() > 0) {
 
-				DocumentoItemResult itemResult = new DocumentoItemResult();
 				NCM ncm = lista.get(0);
 				itensNota[i].getProd().setComparadorNCM(NFCompareUtils.compareNFDescription(ncm, itensNota[i]));
 				if (!itensNota[i].getProd().isComparadorNCM()) {
-					itensResult.add(gravaDadosDocumentoResult(Long.parseLong(itensNota[i].getProd().getCProd()),
-							Long.parseLong(itensNota[i].getProd().getNItemPed()), itensNota[i].getProd().getNCM(),
-							ncm.getDescricao()));
+					itensResult.add(gravaDadosDocumentoResult(
+							Long.parseLong(itensNota[i].getProd().getcProd()), 
+							item.getId(), 
+							ncm.getDescricao(), 
+							itensNota[i].getProd().getxProd()));
 				}
 			} else {
 				itensResult
-						.add(gravaDadosDocumentoResultNaoEncontrado(Long.parseLong(itensNota[i].getProd().getCProd()),
-								Long.parseLong(itensNota[i].getProd().getNItemPed()), itensNota[i].getProd().getNCM()));
+						.add(gravaDadosDocumentoResultNaoEncontrado(Long.parseLong(itensNota[i].getProd().getcProd()),
+								Long.parseLong(itensNota[i].getProd().getnItemPed()), itensNota[i].getProd().getNCM()));
 			}
 
 			item.setItensResult(itensResult);
@@ -367,7 +378,12 @@ public class DocumentoBean {
 		try {
 			UploadedFile arquivo = event.getFile();
 
+			BufferedReader in = new BufferedReader(new InputStreamReader(arquivo.getInputstream()));
+			String line;
 			StringBuffer xmlUpload = new StringBuffer();
+			while ((line = in.readLine()) != null) {
+				xmlUpload.append(line);
+			}
 
 			NotaUtil util = new NotaUtil();
 			util.xmlToObject(xmlUpload.toString(), NfeProc.class);
@@ -380,11 +396,9 @@ public class DocumentoBean {
 			this.arquivosLote.add(arquivo);
 			this.documentosLote.add(documento);
 
-			FacesContext.getCurrentInstance().addMessage(null,
-					new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
-		} catch (JAXBException e) {
-			FacesContext.getCurrentInstance().addMessage(null,
-					new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
+		} catch (JAXBException | IOException e) {
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
 		}
 	}
 
@@ -392,23 +406,43 @@ public class DocumentoBean {
 	public void exportExcel() {
 		XSSFWorkbook workbook = new XSSFWorkbook();
 		XSSFSheet sheet = workbook.createSheet("ComparacaoNCM_" + new Date().getTime());
+		String excelFilePath = "D:\\Profissional\\Excel\\ComparacaoNCM_" + new Date().getTime()+ ".xlsx";
 
 		int rowNum = 0;
-		System.out.println("Creating excel");
 
 		for (Documento documento : this.documentosLote) {
 			Row row = sheet.createRow(rowNum++);
-			writeBook(documento, row);
+			
+			Cell cellDoc = row.createCell(1);
+			cellDoc.setCellValue(documento.getNomeNota());
+
+			for (DocumentoItem item : documento.getItens()) {
+				Row rowItem = sheet.createRow(rowNum++);
+				
+				Cell cellItem = rowItem.createCell(1);
+				cellItem.setCellValue(item.getIdNcm());
+				
+				for(DocumentoItemResult result : item.getItensResult()){
+					Row rowItemResult = sheet.createRow(rowNum++);
+					Cell cellResult = rowItemResult.createCell(1);
+					if(result.isFlDescricaoNaoEncontrada()){
+						cellResult.setCellValue(result.getDescricaoNaoEncontrada());
+					}else{
+						cellResult.setCellValue(result.getDescricaoEncontrada());
+						
+						cellResult = rowItemResult.createCell(2);
+						cellResult.setCellValue(result.getDescricaoEsperada());
+					}
+				}
+			}
 		}
-	}
-
-	private void writeBook(Documento documento, Row row) {
-		Cell cell = row.createCell(1);
-		cell.setCellValue(documento.getNomeNota());
-
-		for (DocumentoItem item : documento.getItens()) {
-			cell = row.createCell(2);
-			cell.setCellValue(item.getIdNcm());
+		
+        try (FileOutputStream outputStream = new FileOutputStream(excelFilePath)) {
+            workbook.write(outputStream);
+        } catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 }

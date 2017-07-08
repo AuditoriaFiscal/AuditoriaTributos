@@ -75,11 +75,11 @@ public class Prod {
 		this.xProd = xProd;
 	}
 
-	public String getCProd() {
+	public String getcProd() {
 		return cProd;
 	}
 
-	public void setCProd(String cProd) {
+	public void setcProd(String cProd) {
 		this.cProd = cProd;
 	}
 
@@ -91,11 +91,11 @@ public class Prod {
 		this.vProd = vProd;
 	}
 
-	public String getNItemPed() {
+	public String getnItemPed() {
 		return nItemPed;
 	}
 
-	public void setNItemPed(String nItemPed) {
+	public void setnItemPed(String nItemPed) {
 		this.nItemPed = nItemPed;
 	}
 

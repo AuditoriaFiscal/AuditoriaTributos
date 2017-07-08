@@ -1,38 +1,37 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
-		xmlns:ui="http://java.sun.com/jsf/facelets"
-		xmlns:h="http://java.sun.com/jsf/html"
-		xmlns:f="http://java.sun.com/jsf/core"
-		xmlns:p="http://primefaces.org/ui">
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
 
-	<ui:include src="template/header.xhtml" />
-	
-	<body>
-	
-	    <div id="wrapper">
-			
-			<ui:include src="template/nav.xhtml" />
-			
-	        <div id="page-wrapper">
-	            <div class="row">
-	                <div class="col-lg-12">
-	                    <h1 class="page-header">Comparação de NFe</h1>
-	                </div>
-	            </div>
-	            <div class="row">
-	                <div class="col-lg-12">
-	                    <div class="panel panel-default">
-	                        <div class="panel-heading">
-	                            Inclusão de NFe
-	                        </div>
-	                        <div class="panel-body">
-	                            <div class="row">
-	                                <div class="col-lg-12">
-	                                    <h:form enctype="multipart/form-data">
-	                                        <div class="form-group">
-	                                            <p:growl id="messages" showDetail="true" />
-												<p:outputLabel value="${nomeArquivoEntrada}" />
-												<p:outputLabel value="Arquivo: " />
-												<p:fileUpload fileUploadListener="#{documentoBean.upload}" 
+<ui:include src="template/header.xhtml" />
+
+<body>
+
+	<div id="wrapper">
+
+		<ui:include src="template/nav.xhtml" />
+
+		<div id="page-wrapper">
+			<div class="row">
+				<div class="col-lg-12">
+					<h1 class="page-header">Comparação de NFe</h1>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-lg-12">
+					<div class="panel panel-default">
+						<div class="panel-heading">Inclusão de NFe</div>
+						<div class="panel-body">
+							<h:form enctype="multipart/form-data">
+								<div class="row">
+									<div class="col-lg-12">
+										<div class="form-group">
+											<p:growl id="messages" showDetail="true" />
+											<p:outputLabel value="${nomeArquivoEntrada}" />
+											<p:outputLabel value="Arquivo: " />
+											
+											<p:fileUpload fileUploadListener="#{documentoBean.upload}" 
 															  
 															  allowTypes="/(\.|\/)(xml)$/"
 															  invalidFileMessage="É permitido somente arquivo xml"
@@ -43,16 +42,21 @@
 															  
 															  sequential="true"
 															  dragDropSupport="true"/>
-	                                        </div>
-	                                    </h:form>
-	                                </div>
-	                            </div>
-	                        </div>
-	                    </div>
-	                </div>
-            	</div>
-	        </div>
-	    </div>
+										</div>
+									</div>
+									<div class="col-lg-12">
+										<p:commandButton value="With Icon" id="Downlaod Excel" actionListener="#{documentoBean.exportExcel}" icon="fa-file-excel-o" />
+									</div>
+								</div>
+							</h:form>
+						</div>
 
-	</body>
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</body>
 </html>
