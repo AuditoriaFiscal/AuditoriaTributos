@@ -1,0 +1,27 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+	<div class="navbar-default sidebar" role="navigation">
+		<div class="sidebar-nav navbar-collapse">
+			<h:form>
+				<ul class="nav" id="side-menu">
+					<li>
+						<p:commandLink action="nfe.xhtml">
+							<i class="fa fa-edit fa-fw"></i><h:outputText value="NFe Entrada x NFe Saída" />
+						</p:commandLink>
+					</li>
+					<li>
+						<p:commandLink action="nfeLote.xhtml">
+							<i class="fa fa-edit fa-fw"></i><h:outputText value="NFe x NCM" />
+						</p:commandLink>
+					</li>
+					<li>
+						<a href="forms.html"><i class="fa fa-edit fa-fw"></i>SPED</a>
+					</li>
+				</ul>
+			</h:form>
+		</div>
+	</div>
+</html>

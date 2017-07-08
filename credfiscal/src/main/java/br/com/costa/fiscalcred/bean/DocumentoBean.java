@@ -1,9 +1,7 @@
 package br.com.costa.fiscalcred.bean;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -15,6 +13,10 @@ import javax.faces.context.FacesContext;
 import javax.persistence.Query;
 import javax.xml.bind.JAXBException;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.UploadedFile;
 
@@ -35,15 +37,18 @@ public class DocumentoBean {
 	@ManagedProperty("#{documentoService}")
 	private DocumentoService documentoService;
 
+	List<UploadedFile> arquivosLote;
+	List<Documento> documentosLote;
+	
 	private UploadedFile arquivoEntrada;
 	private UploadedFile arquivoSaida;
-	
+
 	private NfeProc nfeEntrada;
 	private NfeProc nfeSaida;
-	
+
 	private String nomeArquivoEntrada;
 	private String nomeArquivoSaida;
-	
+
 	private Documento documentoEntrada;
 	private Documento documentoSaida;
 
@@ -117,9 +122,27 @@ public class DocumentoBean {
 	public void setDocumentoSaida(Documento documentoSaida) {
 		this.documentoSaida = documentoSaida;
 	}
+	
+	public List<UploadedFile> getArquivosLote() {
+		return arquivosLote;
+	}
+
+	public void setArquivosLote(List<UploadedFile> arquivosLote) {
+		this.arquivosLote = arquivosLote;
+	}
+	
+	public List<Documento> getDocumentosLote() {
+		return documentosLote;
+	}
+
+	public void setDocumentosLote(List<Documento> documentosLote) {
+		this.documentosLote = documentosLote;
+	}
 
 	@PostConstruct
 	private void doInit(){
+		arquivosLote = new ArrayList<UploadedFile>();
+		documentosLote = new ArrayList<Documento>();
 		arquivoEntrada = null;
 		arquivoSaida = null;
 	}
@@ -140,14 +163,7 @@ public class DocumentoBean {
 	@SuppressWarnings("static-access")
 	public void uploadEntrada() {
 		try {
-			BufferedReader in = new BufferedReader(new InputStreamReader(arquivoEntrada.getInputstream()));
-			String line;
-
 			StringBuffer xmlUpload = new StringBuffer();
-			while ((line = in.readLine()) != null) {
-				xmlUpload.append(line);
-				System.out.println(line);
-			}
 			
 			NotaUtil util = new NotaUtil();
 			util.xmlToObject(xmlUpload.toString(), NfeProc.class);
@@ -157,7 +173,7 @@ public class DocumentoBean {
 			
 			documentoEntrada = documento;
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + arquivoEntrada.getFileName() + " foi salvo!"));
-		} catch (IOException | JAXBException e) {
+		} catch (JAXBException e) {
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
 		} catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro inesperado, informe o administrador.", e.getMessage()));
@@ -168,14 +184,7 @@ public class DocumentoBean {
 	@SuppressWarnings("static-access")
 	public void uploadSaida() {
 		try {
-			BufferedReader in = new BufferedReader(new InputStreamReader(arquivoSaida.getInputstream()));
-			String line;
-
 			StringBuffer xmlUpload = new StringBuffer();
-			while ((line = in.readLine()) != null) {
-				xmlUpload.append(line);
-				System.out.println(line);
-			}
 
 			NotaUtil util = new NotaUtil();
 			util.xmlToObject(xmlUpload.toString(), NfeProc.class);
@@ -186,67 +195,13 @@ public class DocumentoBean {
 			
 			documentoSaida = documento;
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + arquivoSaida.getFileName() + " foi salvo!"));
-
-		} catch (IOException | JAXBException e) {
+		} catch (JAXBException e) {
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
 		} catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro inesperado, informe o administrador.", e.getMessage()));
 		}
 	}
 
-	@SuppressWarnings("static-access")
-	public void upload(FileUploadEvent event) {
-		try {
-			if(arquivoEntrada == null){
-				arquivoEntrada = event.getFile();
-				
-				BufferedReader in = new BufferedReader(new InputStreamReader(arquivoEntrada.getInputstream()));
-				String line;
-	
-				StringBuffer xmlUpload = new StringBuffer();
-				while ((line = in.readLine()) != null) {
-					xmlUpload.append(line);
-					System.out.println(line);
-				}
-				
-				NotaUtil util = new NotaUtil();
-				util.xmlToObject(xmlUpload.toString(), NfeProc.class);
-				setNfeEntrada(convertStringToObject(xmlUpload.toString()));
-				Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), event.getFile().getFileName());
-				documento.setItens(compararNotas(documento.getId()));
-				
-				documentoEntrada = documento;
-				FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
-
-			} else if (arquivoEntrada != null && arquivoSaida == null) {
-				arquivoSaida = event.getFile();
-
-				BufferedReader in = new BufferedReader(new InputStreamReader(arquivoSaida.getInputstream()));
-				String line;
-
-				StringBuffer xmlUpload = new StringBuffer();
-				while ((line = in.readLine()) != null) {
-					xmlUpload.append(line);
-					System.out.println(line);
-				}
-
-				NotaUtil util = new NotaUtil();
-				util.xmlToObject(xmlUpload.toString(), NfeProc.class);
-				setNfeSaida(convertStringToObject(xmlUpload.toString()));
-				
-				Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeSaida().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeSaida().getNFe().getInfNFe().getEmit().getCNPJ()), event.getFile().getFileName());
-				documento.setItens(compararNotas(documento.getId()));
-				
-				documentoSaida = documento;
-				FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
-			}
-
-		} catch (IOException | JAXBException e) {
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
-		}
-
-	}
-	
 	@SuppressWarnings("unchecked")
 	public List<DocumentoItem> compararNotas(Long idDocumento){
 
@@ -294,7 +249,7 @@ public class DocumentoBean {
 				itemEntrada.setItensResultNotasCompare(new ArrayList<>());
 				boolean find = false;
 				for (DocumentoItem itemSaida : documentoSaida.getItens()) {
-					if(itemEntrada.getId().equals(itemSaida.getId())){
+					if(itemEntrada.getIdNcm().equals(itemSaida.getIdNcm())){
 						if(!itemEntrada.getDescricao().equals(itemSaida.getDescricao())) {
 							DocumentoItemResult result = new DocumentoItemResult();
 							
@@ -302,7 +257,7 @@ public class DocumentoBean {
 							result.setIdDocumentoItem(itemEntrada.getIdDocumento());
 							
 							StringBuilder resultadoCompare = new StringBuilder()
-									.append("Descrição incompatível com código NCM " +itemEntrada.getId())
+									.append("Descrição incompatível com código NCM " +itemEntrada.getIdNcm())
 									.append(" - Esperado : \"" + itemEntrada.getDescricao() + "\"")
 									.append(" - Obtido : \"" + itemEntrada.getDescricao() + "\"");
 							result.setDescricao(resultadoCompare.toString());
@@ -321,7 +276,7 @@ public class DocumentoBean {
 					result.setIdDocumentoItem(itemEntrada.getIdDocumento());
 					
 					StringBuilder resultadoCompare = new StringBuilder()
-							.append("Código NCM '" +itemEntrada.getId() + "' e descrição '")
+							.append("Código NCM '" +itemEntrada.getIdNcm() + "' e descrição '")
 							.append(itemEntrada.getDescricao() + "' não encontrados no documento de saida.");
 					result.setDescricao(resultadoCompare.toString());
 
@@ -330,12 +285,7 @@ public class DocumentoBean {
 			}
 		}
 	}
-	
-	public void handleFileUpload(FileUploadEvent event) {
-		FacesMessage message = new FacesMessage("Succesful", event.getFile().getFileName() + " is uploaded.");
-		FacesContext.getCurrentInstance().addMessage(null, message);
-	}
-	
+
 	public Documento crateDocumento(String xml, Long numeroNF, Long cnpj, String nomeArquivo){
 		
 		Documento documento = new Documento();
@@ -365,5 +315,51 @@ public class DocumentoBean {
 		itemResult.setIdDocumentoItem(idDocumentoItem);
 		
 		return documentoService.registerItemResult(itemResult);
+	}
+	
+	@SuppressWarnings("static-access")
+	public void upload(FileUploadEvent event) {
+		try {
+			UploadedFile arquivo = event.getFile();
+
+			StringBuffer xmlUpload = new StringBuffer();
+			
+			NotaUtil util = new NotaUtil();
+			util.xmlToObject(xmlUpload.toString(), NfeProc.class);
+			setNfeEntrada(convertStringToObject(xmlUpload.toString()));
+			Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), event.getFile().getFileName());
+			documento.setItens(compararNotas(documento.getId()));
+			
+			this.arquivosLote.add(arquivo);
+			this.documentosLote.add(documento);
+			
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
+		} catch (JAXBException e) {
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
+		}
+	}
+	
+	@SuppressWarnings("resource")
+	public void exportExcel() {
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		XSSFSheet sheet = workbook.createSheet("ComparacaoNCM_" + new Date().getTime());
+
+		int rowNum = 0;
+		System.out.println("Creating excel");
+
+		for (Documento documento : this.documentosLote) {
+			Row row = sheet.createRow(rowNum++);
+			writeBook(documento, row);
+		}
+	}
+	
+	private void writeBook(Documento documento, Row row) {
+		Cell cell = row.createCell(1);
+		cell.setCellValue(documento.getNomeNota());
+
+		for(DocumentoItem item : documento.getItens()){
+			cell = row.createCell(2);
+			cell.setCellValue(item.getIdNcm());
+		}
 	}
 }

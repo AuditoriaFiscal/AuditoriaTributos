@@ -3,65 +3,15 @@
 		xmlns:ui="http://java.sun.com/jsf/facelets"
 		xmlns:h="http://java.sun.com/jsf/html"
 		xmlns:f="http://java.sun.com/jsf/core"
-		xmlns:p="http://primefaces.org/ui"
-		xmlns:c="http://java.sun.com/jstl/core">
+		xmlns:p="http://primefaces.org/ui">
 
-	<h:head>
-	
-		<meta charset="utf-8" />
-		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="description" content="" />
-		<meta name="author" content="" />
-		<title>CREDFiscal - Comparação de NFe</title>
-	
-		<link href="../bs/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-		<link href="../bs/vendor/metisMenu/metisMenu.min.css" rel="stylesheet" />
-		<link href="../bs/dist/css/sb-admin-2.css" rel="stylesheet" />
-		<link href="../bs/vendor/morrisjs/morris.css" rel="stylesheet" />
-		<link href="../bs/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-		<script name="jquery/jquery.js" library="primefaces"></script>
-	</h:head>
+	<ui:include src="template/header.xhtml" />
 	
 	<body>
 
 		<div id="wrapper">
-			<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
-				<div class="navbar-header">
-					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-						<span class="sr-only"></span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-					</button>
-					<a class="navbar-brand" href="index.html">CREDFiscal - Sistema de cálculo de cédito fiscal</a>
-				</div>
-	
-				<ul class="nav navbar-top-links navbar-right">
-					<li class="dropdown"><a class="dropdown-toggle"
-						data-toggle="dropdown" href="#"> <i class="fa fa-user fa-fw"></i>
-							<i class="fa fa-caret-down"></i>
-					</a>
-						<ul class="dropdown-menu dropdown-user">
-							<li><a href="#"><i class="fa fa-user fa-fw"></i>Perfil do usuário</a></li>
-							<li class="divider"></li>
-							<li><a href="#"><i class="fa fa-sign-out fa-fw"></i> Sair</a>
-							</li>
-						</ul></li>
-				</ul>
-	
-				<div class="navbar-default sidebar" role="navigation">
-					<div class="sidebar-nav navbar-collapse">
-						<ul class="nav" id="side-menu">
-							<li><a href="nfe.xhtml?faces-redirect=true"><i
-									class="fa fa-edit fa-fw"></i>NFe</a></li>
-							<li><a href="#"><i class="fa fa-edit fa-fw"></i>SPED</a></li>
-						</ul>
-					</div>
-					<!-- /.sidebar-collapse -->
-				</div>
-				<!-- /.navbar-static-side -->
-			</nav>
+
+			<ui:include src="template/nav.xhtml" />
 	
 			<div id="page-wrapper">
 				<div class="row">
