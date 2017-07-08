@@ -260,7 +260,7 @@ public class DocumentoBean {
 									.append("Descrição incompatível com código NCM " +itemEntrada.getIdNcm())
 									.append(" - Esperado : \"" + itemEntrada.getDescricao() + "\"")
 									.append(" - Obtido : \"" + itemEntrada.getDescricao() + "\"");
-							result.setDescricao(resultadoCompare.toString());
+//							result.setDescricao(resultadoCompare.toString());
 
 							itemEntrada.getItensResultNotasCompare().add(result);
 							find = true;
@@ -278,7 +278,7 @@ public class DocumentoBean {
 					StringBuilder resultadoCompare = new StringBuilder()
 							.append("Código NCM '" +itemEntrada.getIdNcm() + "' e descrição '")
 							.append(itemEntrada.getDescricao() + "' não encontrados no documento de saida.");
-					result.setDescricao(resultadoCompare.toString());
+//					result.setDescricao(resultadoCompare.toString());
 
 					itemEntrada.getItensResultNotasCompare().add(result);
 				}
@@ -311,7 +311,7 @@ public class DocumentoBean {
 	public DocumentoItemResult gravaDadosDocumentoResult(String descricao, Long idDocumentoItem){
 		DocumentoItemResult itemResult = new DocumentoItemResult();
 		
-		itemResult.setDescricao(descricao);
+//		itemResult.setDescricao(descricao);
 		itemResult.setIdDocumentoItem(idDocumentoItem);
 		
 		return documentoService.registerItemResult(itemResult);
