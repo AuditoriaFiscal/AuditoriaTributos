@@ -29,11 +29,11 @@ public class NfeProc {
 		this.xmlns = xmlns;
 	}
 
-	public String getVersao() {
+	public String getversao() {
 		return versao;
 	}
 
-	public void setVersao(String versao) {
+	public void setversao(String versao) {
 		this.versao = versao;
 	}
 

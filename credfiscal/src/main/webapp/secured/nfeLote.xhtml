@@ -23,8 +23,8 @@
 					<div class="panel panel-default">
 						<div class="panel-heading">Inclusão de NFe</div>
 						<div class="panel-body">
-							<h:form enctype="multipart/form-data">
-								<div class="row">
+							<div class="row">
+								<h:form enctype="multipart/form-data">
 									<div class="col-lg-12">
 										<div class="form-group">
 											<p:growl id="messages" showDetail="true" />
@@ -44,11 +44,11 @@
 															  dragDropSupport="true"/>
 										</div>
 									</div>
-									<div class="col-lg-12">
-										<p:commandButton value="With Icon" id="Downlaod Excel" actionListener="#{documentoBean.exportExcel}" icon="fa-file-excel-o" />
-									</div>
+								</h:form>
+								<div class="col-lg-12">
+									<p:commandButton value="Downlaod Excel" id="download" actionListener="#{documentoBean.excelNovo}" icon="fa-file-excel" />
 								</div>
-							</h:form>
+							</div>
 						</div>
 
 

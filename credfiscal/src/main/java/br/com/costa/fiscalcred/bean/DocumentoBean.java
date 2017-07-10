@@ -18,8 +18,12 @@ import javax.faces.context.FacesContext;
 import javax.persistence.Query;
 import javax.xml.bind.JAXBException;
 
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.primefaces.event.FileUploadEvent;
@@ -373,48 +377,59 @@ public class DocumentoBean {
 		return documentoService.registerItemResult(itemResult);
 	}
 
-	@SuppressWarnings("static-access")
 	public void upload(FileUploadEvent event) {
 		try {
+			
 			UploadedFile arquivo = event.getFile();
-
-			BufferedReader in = new BufferedReader(new InputStreamReader(arquivo.getInputstream()));
-			String line;
-			StringBuffer xmlUpload = new StringBuffer();
-			while ((line = in.readLine()) != null) {
-				xmlUpload.append(line);
-			}
-
-			NotaUtil util = new NotaUtil();
-			util.xmlToObject(xmlUpload.toString(), NfeProc.class);
-			setNfeEntrada(convertStringToObject(xmlUpload.toString()));
-			Documento documento = crateDocumento(xmlUpload.toString(),
-					new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()),
-					new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), event.getFile().getFileName());
-			documento.setItens(compararNotas(documento.getId()));
-
 			this.arquivosLote.add(arquivo);
-			this.documentosLote.add(documento);
-
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
-		} catch (JAXBException | IOException e) {
+			
+		} catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
 		}
 	}
 
-	@SuppressWarnings("resource")
+	@SuppressWarnings({ "resource", "deprecation", "static-access" })
 	public void exportExcel() {
 		XSSFWorkbook workbook = new XSSFWorkbook();
 		XSSFSheet sheet = workbook.createSheet("ComparacaoNCM_" + new Date().getTime());
 		String excelFilePath = "D:\\Profissional\\Excel\\ComparacaoNCM_" + new Date().getTime()+ ".xlsx";
 
 		int rowNum = 0;
+		
+		XSSFFont headerFont = workbook.createFont();
+		CellStyle headerStyle = workbook.createCellStyle();
 
+		headerFont.setBoldweight(headerFont.BOLDWEIGHT_BOLD);
+		headerFont.setFontHeightInPoints((short) 12);
+		headerStyle.setFillBackgroundColor(IndexedColors.BLACK.getIndex());
+		headerStyle.setAlignment(headerStyle.ALIGN_CENTER);
+		headerStyle.setFont(headerFont);
+		headerStyle.setBorderBottom(HSSFCellStyle.BORDER_MEDIUM);
+		
 		for (Documento documento : this.documentosLote) {
-			Row row = sheet.createRow(rowNum++);
 			
+			Row rowHeader = sheet.createRow(rowNum++);
+			Cell cellDocHeader = rowHeader.createCell(1);
+			cellDocHeader.setCellValue("Documento");
+			cellDocHeader.setCellStyle(headerStyle);
+			
+			Row row = sheet.createRow(rowNum++);
 			Cell cellDoc = row.createCell(1);
 			cellDoc.setCellValue(documento.getNomeNota());
+			
+			Row rowItemHeader = sheet.createRow(rowNum++);
+			Cell cellItemHeader = rowItemHeader.createCell(1);
+			cellItemHeader.setCellValue("NCM");
+			cellItemHeader.setCellStyle(headerStyle);
+			
+			cellItemHeader = rowItemHeader.createCell(2);
+			cellItemHeader.setCellValue("Descrição Encontrada");
+			cellItemHeader.setCellStyle(headerStyle);
+			
+			cellItemHeader = rowItemHeader.createCell(3);
+			cellItemHeader.setCellValue("Descrição Esperada");
+			cellItemHeader.setCellStyle(headerStyle);
 
 			for (DocumentoItem item : documento.getItens()) {
 				Row rowItem = sheet.createRow(rowNum++);
@@ -423,19 +438,20 @@ public class DocumentoBean {
 				cellItem.setCellValue(item.getIdNcm());
 				
 				for(DocumentoItemResult result : item.getItensResult()){
-					Row rowItemResult = sheet.createRow(rowNum++);
-					Cell cellResult = rowItemResult.createCell(1);
+					cellItem = rowItem.createCell(2);
 					if(result.isFlDescricaoNaoEncontrada()){
-						cellResult.setCellValue(result.getDescricaoNaoEncontrada());
+						cellItem.setCellValue(result.getDescricaoNaoEncontrada());
 					}else{
-						cellResult.setCellValue(result.getDescricaoEncontrada());
+						cellItem.setCellValue(result.getDescricaoEncontrada());
 						
-						cellResult = rowItemResult.createCell(2);
-						cellResult.setCellValue(result.getDescricaoEsperada());
+						cellItem = rowItem.createCell(3);
+						cellItem.setCellValue(result.getDescricaoEsperada());
 					}
 				}
 			}
 		}
+		
+		documentosLote = new ArrayList<Documento>();
 		
         try (FileOutputStream outputStream = new FileOutputStream(excelFilePath)) {
             workbook.write(outputStream);
@@ -443,6 +459,95 @@ public class DocumentoBean {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	@SuppressWarnings({ "static-access", "deprecation", "resource" })
+	public void excelNovo(){
+		try {
+			
+			XSSFWorkbook workbook = new XSSFWorkbook();
+			XSSFSheet sheet = workbook.createSheet("ComparacaoNCM_" + new Date().getTime());
+			String excelFilePath = "D:\\Profissional\\Excel\\ComparacaoNCM_" + new Date().getTime()+ ".xlsx";
+
+			int rowNum = 0;
+			
+			XSSFFont headerFont = workbook.createFont();
+			CellStyle headerStyle = workbook.createCellStyle();
+
+			headerFont.setBoldweight(headerFont.BOLDWEIGHT_BOLD);
+			headerFont.setFontHeightInPoints((short) 12);
+			headerStyle.setFillBackgroundColor(IndexedColors.BLACK.getIndex());
+			headerStyle.setAlignment(headerStyle.ALIGN_CENTER);
+			headerStyle.setFont(headerFont);
+			headerStyle.setBorderBottom(HSSFCellStyle.BORDER_MEDIUM);
+			
+			for(UploadedFile fu : this.arquivosLote){
+				BufferedReader in = new BufferedReader(new InputStreamReader(fu.getInputstream()));
+				
+				String line;
+				StringBuffer xmlUpload = new StringBuffer();
+				while ((line = in.readLine()) != null) {
+					xmlUpload.append(line);
+				}
+		
+				NotaUtil util = new NotaUtil();
+				util.xmlToObject(xmlUpload.toString(), NfeProc.class);
+				setNfeEntrada(convertStringToObject(xmlUpload.toString()));
+				Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), fu.getFileName());
+				documento.setItens(compararNotas(documento.getId()));
+				
+				Row rowHeader = sheet.createRow(rowNum++);
+				Cell cellDocHeader = rowHeader.createCell(1);
+				cellDocHeader.setCellValue("Documento");
+				cellDocHeader.setCellStyle(headerStyle);
+				
+				Row row = sheet.createRow(rowNum++);
+				Cell cellDoc = row.createCell(1);
+				cellDoc.setCellValue(documento.getNomeNota());
+				
+				Row rowItemHeader = sheet.createRow(rowNum++);
+				Cell cellItemHeader = rowItemHeader.createCell(1);
+				cellItemHeader.setCellValue("NCM");
+				cellItemHeader.setCellStyle(headerStyle);
+				
+				cellItemHeader = rowItemHeader.createCell(2);
+				cellItemHeader.setCellValue("Descrição Encontrada");
+				cellItemHeader.setCellStyle(headerStyle);
+				
+				cellItemHeader = rowItemHeader.createCell(3);
+				cellItemHeader.setCellValue("Descrição Esperada");
+				cellItemHeader.setCellStyle(headerStyle);
+
+				for (DocumentoItem item : documento.getItens()) {
+					Row rowItem = sheet.createRow(rowNum++);
+					
+					Cell cellItem = rowItem.createCell(1);
+					cellItem.setCellValue(item.getIdNcm());
+					
+					for(DocumentoItemResult result : item.getItensResult()){
+						cellItem = rowItem.createCell(2);
+						if(result.isFlDescricaoNaoEncontrada()){
+							cellItem.setCellValue(result.getDescricaoNaoEncontrada());
+						}else{
+							cellItem.setCellValue(result.getDescricaoEncontrada());
+							
+							cellItem = rowItem.createCell(3);
+							cellItem.setCellValue(result.getDescricaoEsperada());
+						}
+					}
+				}
+			}
+			
+	        try (FileOutputStream outputStream = new FileOutputStream(excelFilePath)) {
+	            workbook.write(outputStream);
+	        } catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} catch (IOException | JAXBException e) {
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
 		}
 	}
 }
