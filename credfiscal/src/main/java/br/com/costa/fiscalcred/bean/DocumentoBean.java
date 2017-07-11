@@ -55,6 +55,7 @@ public class DocumentoBean {
 	private List<Documento> documentosLote;
 	private List<Map<String, String>> xmlUploads;
 
+
 	private UploadedFile arquivoEntrada;
 	private UploadedFile arquivoSaida;
 	private NfeProc nfeEntrada;
