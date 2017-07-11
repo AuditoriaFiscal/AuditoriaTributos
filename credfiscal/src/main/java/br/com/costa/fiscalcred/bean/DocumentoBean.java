@@ -54,7 +54,7 @@ public class DocumentoBean {
 	private List<UploadedFile> arquivosLote;
 	private List<Documento> documentosLote;
 	private List<Map<String, String>> xmlUploads;
-	
+
 	private UploadedFile arquivoEntrada;
 	private UploadedFile arquivoSaida;
 	private NfeProc nfeEntrada;
@@ -68,7 +68,6 @@ public class DocumentoBean {
 	private boolean uploadEntrada = false;
 	private boolean uploadSaida = false;
 
-	
 	public boolean isUploadEntrada() {
 		return uploadEntrada;
 	}
@@ -180,7 +179,7 @@ public class DocumentoBean {
 	public void setDocumentosLote(List<Documento> documentosLote) {
 		this.documentosLote = documentosLote;
 	}
-	
+
 	public List<Map<String, String>> getXmlUploads() {
 		return xmlUploads;
 	}
@@ -439,27 +438,21 @@ public class DocumentoBean {
 		try {
 
 			UploadedFile arquivo = event.getFile();
-<<<<<<< HEAD
-			this.arquivosLote.add(arquivo);
-			FacesContext.getCurrentInstance().addMessage(null,
-					new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
-
-=======
 			BufferedReader in = new BufferedReader(new InputStreamReader(arquivo.getInputstream()));
-			
+
 			String line;
 			StringBuffer xmlUpload = new StringBuffer();
 			while ((line = in.readLine()) != null) {
 				xmlUpload.append(line);
 			}
-			
+
 			Map<String, String> notaMap = new HashMap<String, String>();
 			notaMap.put(arquivo.getFileName(), xmlUpload.toString());
-			
+
 			this.xmlUploads.add(notaMap);
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
-			
->>>>>>> 23ac872bffd7d04c98972c4ca70327c0f7cb49b2
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
+
 		} catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage(null,
 					new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
@@ -558,31 +551,14 @@ public class DocumentoBean {
 			headerStyle.setAlignment(headerStyle.ALIGN_CENTER);
 			headerStyle.setFont(headerFont);
 			headerStyle.setBorderBottom(HSSFCellStyle.BORDER_MEDIUM);
-<<<<<<< HEAD
 
-			for (UploadedFile fu : this.arquivosLote) {
-				BufferedReader in = new BufferedReader(new InputStreamReader(fu.getInputstream()));
+			for (Map<String, String> mapXml : this.xmlUploads) {
 
-				String line;
-				StringBuffer xmlUpload = new StringBuffer();
-				while ((line = in.readLine()) != null) {
-					xmlUpload.append(line);
-				}
-
-				NotaUtil util = new NotaUtil();
-				util.xmlToObject(xmlUpload.toString(), NfeProc.class);
-				setNfeEntrada(convertStringToObject(xmlUpload.toString()));
-				Documento documento = crateDocumento(xmlUpload.toString(),
-						new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()),
-						new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), fu.getFileName());
-=======
-			
-			for(Map<String, String> mapXml : this.xmlUploads){
-		
 				String xmlUpload = mapXml.values().toString();
 				setNfeEntrada(convertStringToObject(xmlUpload));
-				Documento documento = crateDocumento(xmlUpload, new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), mapXml.keySet().toString());
->>>>>>> 23ac872bffd7d04c98972c4ca70327c0f7cb49b2
+				Documento documento = crateDocumento(xmlUpload,
+						new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()),
+						new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), mapXml.keySet().toString());
 				documento.setItens(compararNotas(documento.getId()));
 
 				Row rowHeader = sheet.createRow(rowNum++);
@@ -626,32 +602,19 @@ public class DocumentoBean {
 					}
 				}
 			}
-<<<<<<< HEAD
+
+			this.xmlUploads = new ArrayList<Map<String, String>>();
 
 			try (FileOutputStream outputStream = new FileOutputStream(excelFilePath)) {
 				workbook.write(outputStream);
 			} catch (FileNotFoundException e) {
-=======
-			
-			this.xmlUploads = new ArrayList<Map<String, String>>();
-			
-	        try (FileOutputStream outputStream = new FileOutputStream(excelFilePath)) {
-	            workbook.write(outputStream);
-	        } catch (FileNotFoundException e) {
->>>>>>> 23ac872bffd7d04c98972c4ca70327c0f7cb49b2
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-<<<<<<< HEAD
-		} catch (IOException | JAXBException e) {
+		} catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage(null,
 					new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
-=======
-		} catch (Exception e) {
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
->>>>>>> 23ac872bffd7d04c98972c4ca70327c0f7cb49b2
 		}
 	}
-
 }
