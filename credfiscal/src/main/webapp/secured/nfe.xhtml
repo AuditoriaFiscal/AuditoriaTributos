@@ -1,161 +1,215 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-		xmlns:ui="http://java.sun.com/jsf/facelets"
-		xmlns:h="http://java.sun.com/jsf/html"
-		xmlns:f="http://java.sun.com/jsf/core"
-		xmlns:p="http://primefaces.org/ui">
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:c="http://java.sun.com/jsp/jstl/core">
 
-	<ui:include src="template/header.xhtml" />
-	
-	<body>
+<ui:include src="template/header.xhtml" />
 
-		<div id="wrapper">
+<body>
 
-			<ui:include src="template/nav.xhtml" />
-	
-			<div id="page-wrapper">
-				<div class="row">
-					<div class="col-lg-12">
-						<h1 class="page-header">Comparação de NFe</h1>
-					</div>
+	<div id="wrapper">
+
+		<ui:include src="template/nav.xhtml" />
+
+		<div id="page-wrapper">
+			<div class="row">
+				<div class="col-lg-12">
+					<h1 class="page-header">Comparação de NFe</h1>
 				</div>
-				<div class="row">
-					<div class="col-lg-12">
-						<div class="panel panel-default">
-							<div class="panel-heading">Inclusão de NFe</div>
-							<div class="panel-body">
-								<h:form enctype="multipart/form-data">
-									<div class="row">
-										<div class="col-lg-12">
-											<p:messages id="messages" autoUpdate="true" closable="true" />
-											<div class="form-group">
+			</div>
+			<div class="row">
+				<div class="col-lg-12">
+					<div class="panel panel-default">
+						<div class="panel-heading">Inclusão de NFe</div>
+						<div class="panel-body">
+							<h:form enctype="multipart/form-data">
+								<div class="row">
+									<div class="col-lg-12">
+										<p:messages id="messages" autoUpdate="true" closable="true" />
+										<div class="form-group">
+											<c:if test="#{!documentoBean.uploadEntrada}">
 												<div class="col-lg-2">
 													<p:outputLabel value="Nota Entrada: " />
 												</div>
 												<div class="col-lg-6">
 													<p:fileUpload value="#{documentoBean.arquivoEntrada}"
-														mode="simple" skinSimple="true" />
+														mode="simple" skinSimple="true"  />
 												</div>
-												<div class="col-lg-4">
-													<p:commandButton value="Comparar NCM Entrada" id="comNCMEntrada" actionListener="#{documentoBean.uploadEntrada}" update="messages tabelaDocumentoEntrada" icon="ui-icon-disk" ajax="false" />
+												<div class="col-lg-4" align="right">
+													<p:commandButton value="Comparar NCM Entrada"
+														id="comNCMEntrada" style="width:293px"
+														actionListener="#{documentoBean.uploadEntrada}"
+														update="messages tabelaDocumentoEntrada"
+														icon="ui-icon-disk" ajax="false" />
 												</div>
-											</div>
+											</c:if>
+											<c:if test="#{documentoBean.uploadEntrada}">
+												<h4 class="page-header">Documento entrada OK!</h4>
+											</c:if>
 										</div>
-										<br/>
-										<div class="col-lg-12">
-											<div class="form-group">
+									</div>
+									<br /> <br />
+									<div class="col-lg-12">
+										<div class="form-group">
+											<c:if test="#{!documentoBean.uploadSaida}">
 												<div class="col-lg-2">
 													<p:outputLabel value="Nota Saída: " />
 												</div>
 												<div class="col-lg-6">
-													<p:fileUpload value="#{documentoBean.arquivoSaida}" mode="simple" skinSimple="false" />
+													<p:fileUpload value="#{documentoBean.arquivoSaida}"
+														mode="simple" skinSimple="false" />
 												</div>
-												<div class="col-lg-4">
-													<p:commandButton value="Comparar NCM Saída" id="comNCMSaida" actionListener="#{documentoBean.uploadSaida}" update="messages" icon="ui-icon-disk" ajax="false" />
+												<div class="col-lg-4" align="right">
+													<p:commandButton value="Comparar NCM Saída"
+														id="comNCMSaida" style="width:293px"
+														actionListener="#{documentoBean.uploadSaida}"
+														update="messages" icon="ui-icon-disk" ajax="false" />
 												</div>
-											</div>
+											</c:if>
+											<c:if test="#{documentoBean.uploadSaida}">
+												<h4 class="page-header">Documento saida OK!</h4>
+											</c:if>
 										</div>
-										<div class="col-lg-12">
-											<div class="form-group">
-												<div class="col-lg-4">
-													<p:commandButton value="Comparar NCM's Entrada e Saida" id="comNCMEntradaSaida" actionListener="#{documentoBean.compararNotasEntradaSaida}" update="@form" icon="ui-icon-disk" ajax="false" />
-												</div>
-											</div>
-										</div>
-										<div class="col-lg-12" style="height:50px;"></div>
-										<div class="col-lg-12">
-											<div class="form-group">
-												<p:dataTable id="tabelaDocumentoEntrada" var="documento" value="#{documentoBean.documentoEntrada}" 
-													paginator="false" 
-													rows="10"
-                 									paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
-													emptyMessage="Compare a nota de entrada" 
-													rendered="true">
-													<f:facet name="header">
-														<p:column headerText="resultadoNotaEntradaHeader">
-           													 <h:outputText value="Resultado Documento entrada" />
-        												</p:column>
-														<p:column headerText="Id do documento " rowspan="2">
-															<h:outputText value="#{documento.nomeNota}" />
-														</p:column>
-													</f:facet>
-													<p:column headerText="Item">
-														<ui:repeat var="item" value="#{documento.itens}">
-															<ui:repeat var="itemResult" value="#{item.itensResult}">
-															<p:column headerText="ID NCM">
-																<h:outputText value="#{itemResult.idNcm}" />
-															</p:column>
-															<p:column headerText="ID ITEM DOCUMENTO">
-																<h:outputText value="#{itemResult.idDocumentoItem}" />
-															</p:column>
-															<p:column headerText="DESCRIÇÃO ESPERADA">
-																<h:outputText value="#{itemResult.descricaoEsperada}" />
-															</p:column>
-															<p:column headerText="DESCRIÇÃO ENCONTRADA">
-																<h:outputText value="#{itemResult.descricaoEncontrada}" />
-															</p:column>
-															</ui:repeat>
-														</ui:repeat>
-													</p:column>
-												</p:dataTable>
-												    <h:commandLink>
-												        <p:graphicImage name="/demo/images/excel.png" />
-												        <p:dataExporter type="xls" target="tabelaDocumentoEntrada" fileName="Resultado Documento entrada - #{documento.nomeNota}" pageOnly="false"/>
-												    </h:commandLink>
-											</div>
-										</div>
-<!-- 										<div class="col-lg-12"> -->
-<!-- 											<div class="form-group"> -->
-<!-- 												<p:dataTable id="tabelaDocumentoSaida" var="documento" value="#{documentoBean.documentoSaida}"  rendered="#{not empty documentoBean.documentoSaida}"> -->
-<!-- 													<f:facet name="header"> -->
-<!-- 														Resultado Documento saída -->
-<!-- 													</f:facet> -->
-<!-- 													<p:column headerText="Id"> -->
-<!-- 														<h:outputText value="#{documento.nomeNota}" /> -->
-<!-- 													</p:column> -->
-<!-- 													<p:column headerText="Item"> -->
-<!-- 														<ui:repeat var="item" value="#{documento.itens}"> -->
-<!-- 															<p:column headerText="NCM"> -->
-<!-- 																<h:outputText value="#{item.idNcm}" /> -->
-<!-- 																<ui:repeat var="itemResult" value="#{item.itensResult}"> -->
-<!-- 																	<h:outputLabel value="#{itemResult.descricao}" /> -->
-<!-- 																</ui:repeat> -->
-<!-- 															</p:column> -->
-<!-- 														</ui:repeat> -->
-<!-- 													</p:column> -->
-<!-- 												</p:dataTable> -->
-<!-- 											</div> -->
-<!-- 										</div> -->
-<!-- 										<div class="col-lg-12" style="height:50px;"></div> -->
-<!-- 										<div class="col-lg-12"> -->
-<!-- 											<div class="form-group"> -->
-<!-- 												<p:dataTable id="tabelaCamparacaoNfs" var="documento" value="#{documentoBean.documentoEntrada}" rendered="#{not empty documentoBean.documentoEntrada}"> -->
-<!-- 													<f:facet name="header"> -->
-<!-- 														Resultado da comparação dos Documento Entrada - Saida -->
-<!-- 													</f:facet> 	 -->
-<!-- 													<p:column headerText="Id"> -->
-<!-- 														<h:outputText value="#{documento.nomeNota}" /> -->
-<!-- 													</p:column> -->
-<!-- 													<p:column headerText="Item"> -->
-<!-- 														<ui:repeat var="item" value="#{documento.itens}"> -->
-<!-- 																<ui:repeat var="itemResult" value="#{item.itensResultNotasCompare}"> -->
-<!-- 																<p:column headerText="NCM"> -->
-<!-- 																<h:outputText value="#{item.idNcm}" /> -->
-<!-- 																	<h:outputLabel value="#{itemResult.descricao}" /> -->
-<!-- 																</p:column> -->
-<!-- 																</ui:repeat> -->
-<!-- 														</ui:repeat> -->
-<!-- 													</p:column> -->
-<!-- 												</p:dataTable> -->
-<!-- 											</div> -->
-<!-- 										</div> -->
 									</div>
-								</h:form>
-							</div>
+
+									<br /> <br />
+
+									<div class="col-lg-12">
+										<div class="form-group">
+											<div class="col-lg-12" align="right">
+												<p:commandButton value="Limpar" update="@form"
+													immediate="true" ajax="false"
+													actionListener="#{documentoBean.limparComparacaoNfes}" />
+												<p:commandButton value="Comparar NCM's Entrada e Saida"
+													id="comNCMEntradaSaida"
+													actionListener="#{documentoBean.compararNotasEntradaSaida}"
+													update="@form" icon="ui-icon-disk" ajax="false" />
+											</div>
+										</div>
+									</div>
+									<br /> <br /> <br /> <br /> <br /> <br /> <br /> <br />
+
+								</div>
+								<p:tabView
+									rendered="#{not empty documentoBean.documentoEntrada.itens || not empty documentoBean.documentoSaida.itens}">
+									<p:tab
+										rendered="#{not empty documentoBean.documentoEntrada.itens}"
+										title="Resultado Documento entrada">
+
+										<ui:repeat var="documento"
+											value="#{documentoBean.documentoEntrada.itens}">
+											<p:dataTable id="tabelaDocumentoEntrada" var="itemResult"
+												value="#{documento.itensResult}" paginator="false" rows="10"
+												paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+												emptyMessage="Compare a nota de entrada" rendered="true">
+												<f:facet name="header">
+													<p:row>
+														<p:column headerText="resultadoNotaEntradaHeader">
+															<h:outputText value="ITEM ID - #{documento.id}" />
+														</p:column>
+													</p:row>
+												</f:facet>
+												<p:column headerText="ID NCM">
+													<h:outputText value="#{itemResult.idNcm}" />
+												</p:column>
+												<p:column headerText="DESCRIÇÃO ESPERADA">
+													<h:outputText value="#{itemResult.descricaoEsperada}" />
+												</p:column>
+												<p:column headerText="DESCRIÇÃO ENCONTRADA">
+													<h:outputText value="#{itemResult.descricaoEncontrada}" />
+												</p:column>
+											</p:dataTable>
+										</ui:repeat>
+										<h:commandLink>
+											<p:graphicImage
+												rendered="#{not empty documentoBean.documentoEntrada.itens}"
+												alt="Exportar Excel" style="width:30px"
+												url="../images/excel-icon.png" />
+										</h:commandLink>
+
+									</p:tab>
+									<p:tab
+										rendered="#{not empty documentoBean.documentoSaida.itens}"
+										title="Resultado Documento entrada">
+
+										<ui:repeat var="documento"
+											value="#{documentoBean.documentoSaida.itens}">
+											<p:dataTable id="tabelaDocumentoSaida" var="itemResult"
+												value="#{documento.itensResult}" paginator="false" rows="10"
+												paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+												emptyMessage="Compare a nota de entrada" rendered="true">
+												<f:facet name="header">
+													<p:row>
+														<p:column headerText="resultadoNotaSaidaHeader">
+															<h:outputText value="ITEM ID - #{documento.id}" />
+														</p:column>
+													</p:row>
+												</f:facet>
+												<p:column headerText="ID NCM">
+													<h:outputText value="#{itemResult.idNcm}" />
+												</p:column>
+												<p:column headerText="DESCRIÇÃO ESPERADA">
+													<h:outputText value="#{itemResult.descricaoEsperada}" />
+												</p:column>
+												<p:column headerText="DESCRIÇÃO ENCONTRADA">
+													<h:outputText value="#{itemResult.descricaoEncontrada}" />
+												</p:column>
+											</p:dataTable>
+										</ui:repeat>
+										<h:commandLink>
+											<p:graphicImage
+												rendered="#{not empty documentoBean.documentoSaida.itens}"
+												alt="Exportar Excel" style="width:30px"
+												url="../images/excel-icon.png" />
+										</h:commandLink>
+
+									</p:tab>
+									<p:tab rendered="#{documentoBean.comparacaoEfetuda}"
+										title="Resultado Documento Entrada/Saida">
+
+										<ui:repeat var="documento"
+											value="#{documentoBean.documentoEntrada.itens}">
+											<p:dataTable id="tabelaDocumentoEntrada" var="itemResult"
+												value="#{documento.itensResultNotasCompare}"
+												paginator="false" rows="10"
+												paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+												emptyMessage="Nenhuma diferença encontrada" rendered="true">
+												<f:facet name="header">
+													<p:row>
+														<p:column headerText="resultadoNotaEntradaHeader">
+															<h:outputText value="ITEM ID - #{documento.id}" />
+														</p:column>
+													</p:row>
+												</f:facet>
+												<p:column headerText="ID NCM">
+													<h:outputText value="#{itemResult.idNcm}" />
+												</p:column>
+												<p:column headerText="DESCRIÇÃO ESPERADA">
+													<h:outputText value="#{itemResult.descricaoEsperada}" />
+												</p:column>
+												<p:column headerText="DESCRIÇÃO ENCONTRADA">
+													<h:outputText value="#{itemResult.descricaoEncontrada}" />
+												</p:column>
+											</p:dataTable>
+										</ui:repeat>
+										<h:commandLink>
+											<p:graphicImage
+												rendered="#{not empty documentoBean.documentoEntrada.itens}"
+												alt="Exportar Excel" style="width:30px"
+												url="../images/excel-icon.png" />
+										</h:commandLink>
+
+									</p:tab>
+								</p:tabView>
+							</h:form>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-	</body>
+	</div>
+</body>
 </html>

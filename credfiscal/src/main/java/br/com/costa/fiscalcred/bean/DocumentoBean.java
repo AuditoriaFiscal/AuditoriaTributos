@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
@@ -15,6 +17,7 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
+import javax.faces.event.ActionEvent;
 import javax.persistence.Query;
 import javax.xml.bind.JAXBException;
 
@@ -48,20 +51,47 @@ public class DocumentoBean {
 	@ManagedProperty("#{documentoService}")
 	private DocumentoService documentoService;
 
-	List<UploadedFile> arquivosLote;
-	List<Documento> documentosLote;
-
+	private List<UploadedFile> arquivosLote;
+	private List<Documento> documentosLote;
+	private List<Map<String, String>> xmlUploads;
+	
 	private UploadedFile arquivoEntrada;
 	private UploadedFile arquivoSaida;
-
 	private NfeProc nfeEntrada;
 	private NfeProc nfeSaida;
-
 	private String nomeArquivoEntrada;
 	private String nomeArquivoSaida;
-
 	private Documento documentoEntrada;
 	private Documento documentoSaida;
+
+	private boolean comparacaoEfetuda = false;
+	private boolean uploadEntrada = false;
+	private boolean uploadSaida = false;
+
+	
+	public boolean isUploadEntrada() {
+		return uploadEntrada;
+	}
+
+	public void setUploadEntrada(boolean uploadEntrada) {
+		this.uploadEntrada = uploadEntrada;
+	}
+
+	public boolean isUploadSaida() {
+		return uploadSaida;
+	}
+
+	public void setUploadSaida(boolean uploadSaida) {
+		this.uploadSaida = uploadSaida;
+	}
+
+	public boolean isComparacaoEfetuda() {
+		return comparacaoEfetuda;
+	}
+
+	public void setComparacaoEfetuda(boolean comparacaoEfetuda) {
+		this.comparacaoEfetuda = comparacaoEfetuda;
+	}
 
 	public UploadedFile getArquivoEntrada() {
 		return arquivoEntrada;
@@ -150,13 +180,27 @@ public class DocumentoBean {
 	public void setDocumentosLote(List<Documento> documentosLote) {
 		this.documentosLote = documentosLote;
 	}
+	
+	public List<Map<String, String>> getXmlUploads() {
+		return xmlUploads;
+	}
+
+	public void setXmlUploads(List<Map<String, String>> xmlUploads) {
+		this.xmlUploads = xmlUploads;
+	}
 
 	@PostConstruct
 	private void doInit() {
 		arquivosLote = new ArrayList<UploadedFile>();
 		documentosLote = new ArrayList<Documento>();
+		xmlUploads = new ArrayList<Map<String, String>>();
 		arquivoEntrada = null;
 		arquivoSaida = null;
+		documentoEntrada = new Documento();
+		documentoSaida = new Documento();
+		comparacaoEfetuda = false;
+		uploadEntrada = false;
+		uploadSaida = false;
 	}
 
 	@SuppressWarnings("static-access")
@@ -181,7 +225,7 @@ public class DocumentoBean {
 			while ((line = in.readLine()) != null) {
 				xmlUpload.append(line);
 			}
-			
+
 			NotaUtil util = new NotaUtil();
 			util.replacesNfe(xmlUpload.toString());
 			util.xmlToObject(xmlUpload.toString(), NfeProc.class);
@@ -195,6 +239,7 @@ public class DocumentoBean {
 			FacesContext.getCurrentInstance().addMessage(null,
 					new FacesMessage(MensagensConstants.MSG_UPLOAD_COMPLETO, MensagensConstants.INICIO_MSG_ARQUIVO_SALVO
 							+ arquivoEntrada.getFileName() + MensagensConstants.FIM_MSG_ARQUIVO_SALVO));
+			uploadEntrada = true;
 		} catch (JAXBException e) {
 			FacesContext.getCurrentInstance().addMessage(null,
 					new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
@@ -206,15 +251,22 @@ public class DocumentoBean {
 	}
 
 	@SuppressWarnings("static-access")
+	public void limparComparacaoNfes(ActionEvent ae) {
+		doInit();
+		FacesContext.getCurrentInstance().addMessage(null,
+				new FacesMessage(FacesMessage.SEVERITY_INFO, MensagensConstants.ARQUIVOS_LIMPOS, null));
+	}
+
+	@SuppressWarnings("static-access")
 	public void uploadSaida() {
 		try {
-			BufferedReader in = new BufferedReader(new InputStreamReader(arquivoEntrada.getInputstream()));
+			BufferedReader in = new BufferedReader(new InputStreamReader(arquivoSaida.getInputstream()));
 			String line;
 			StringBuffer xmlUpload = new StringBuffer();
 			while ((line = in.readLine()) != null) {
 				xmlUpload.append(line);
 			}
-			
+
 			NotaUtil util = new NotaUtil();
 			util.xmlToObject(xmlUpload.toString(), NfeProc.class);
 			setNfeSaida(convertStringToObject(xmlUpload.toString()));
@@ -228,6 +280,7 @@ public class DocumentoBean {
 			FacesContext.getCurrentInstance().addMessage(null,
 					new FacesMessage(MensagensConstants.MSG_UPLOAD_COMPLETO, MensagensConstants.INICIO_MSG_ARQUIVO_SALVO
 							+ arquivoSaida.getFileName() + MensagensConstants.FIM_MSG_ARQUIVO_SALVO));
+			uploadSaida = true;
 		} catch (JAXBException e) {
 			FacesContext.getCurrentInstance().addMessage(null,
 					new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
@@ -247,8 +300,10 @@ public class DocumentoBean {
 		for (int i = 0; itensNota.length > i; i++) {
 			List<DocumentoItemResult> itensResult = new ArrayList<DocumentoItemResult>();
 
-			DocumentoItem item = gravaDadosDocumento(itensNota[i].getProd().getxProd(), idDocumento,new Long(itensNota[i].getProd().getNCM()));
-			Query q = documentoService.getEm().createNativeQuery(DocumentoConstants.SELECT_NCM, NCM.class).setParameter(1, itensNota[i].getProd().getNCM());
+			DocumentoItem item = gravaDadosDocumento(itensNota[i].getProd().getxProd(), idDocumento,
+					new Long(itensNota[i].getProd().getNCM()));
+			Query q = documentoService.getEm().createNativeQuery(DocumentoConstants.SELECT_NCM, NCM.class)
+					.setParameter(1, itensNota[i].getProd().getNCM());
 			List<NCM> lista = q.getResultList();
 
 			if (lista.size() > 0) {
@@ -256,11 +311,8 @@ public class DocumentoBean {
 				NCM ncm = lista.get(0);
 				itensNota[i].getProd().setComparadorNCM(NFCompareUtils.compareNFDescription(ncm, itensNota[i]));
 				if (!itensNota[i].getProd().isComparadorNCM()) {
-					itensResult.add(gravaDadosDocumentoResult(
-							Long.parseLong(itensNota[i].getProd().getcProd()), 
-							item.getId(), 
-							ncm.getDescricao(), 
-							itensNota[i].getProd().getxProd()));
+					itensResult.add(gravaDadosDocumentoResult(Long.parseLong(itensNota[i].getProd().getcProd()),
+							item.getId(), ncm.getDescricao(), itensNota[i].getProd().getxProd()));
 				}
 			} else {
 				itensResult
@@ -275,6 +327,7 @@ public class DocumentoBean {
 		return itens;
 	}
 
+	@SuppressWarnings("static-access")
 	public void compararNotasEntradaSaida() {
 		if (null != documentoEntrada && null != documentoSaida) {
 			for (DocumentoItem itemEntrada : documentoEntrada.getItens()) {
@@ -298,7 +351,12 @@ public class DocumentoBean {
 							itemEntrada.getIdDocumento(), itemEntrada.getIdNcm(), itemEntrada.getDescricao()));
 				}
 			}
+			comparacaoEfetuda = true;
+		} else {
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Informe uma nota de entrada e uma de saida.", null));
 		}
+
 	}
 
 	public DocumentoItemResult createDocumentoResultInconsistente(long idDocumento, long idNcm,
@@ -379,13 +437,32 @@ public class DocumentoBean {
 
 	public void upload(FileUploadEvent event) {
 		try {
-			
+
 			UploadedFile arquivo = event.getFile();
+<<<<<<< HEAD
 			this.arquivosLote.add(arquivo);
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
+
+=======
+			BufferedReader in = new BufferedReader(new InputStreamReader(arquivo.getInputstream()));
+			
+			String line;
+			StringBuffer xmlUpload = new StringBuffer();
+			while ((line = in.readLine()) != null) {
+				xmlUpload.append(line);
+			}
+			
+			Map<String, String> notaMap = new HashMap<String, String>();
+			notaMap.put(arquivo.getFileName(), xmlUpload.toString());
+			
+			this.xmlUploads.add(notaMap);
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
 			
+>>>>>>> 23ac872bffd7d04c98972c4ca70327c0f7cb49b2
 		} catch (Exception e) {
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
 		}
 	}
 
@@ -393,10 +470,10 @@ public class DocumentoBean {
 	public void exportExcel() {
 		XSSFWorkbook workbook = new XSSFWorkbook();
 		XSSFSheet sheet = workbook.createSheet("ComparacaoNCM_" + new Date().getTime());
-		String excelFilePath = "D:\\Profissional\\Excel\\ComparacaoNCM_" + new Date().getTime()+ ".xlsx";
+		String excelFilePath = "D:\\Profissional\\Excel\\ComparacaoNCM_" + new Date().getTime() + ".xlsx";
 
 		int rowNum = 0;
-		
+
 		XSSFFont headerFont = workbook.createFont();
 		CellStyle headerStyle = workbook.createCellStyle();
 
@@ -406,72 +483,72 @@ public class DocumentoBean {
 		headerStyle.setAlignment(headerStyle.ALIGN_CENTER);
 		headerStyle.setFont(headerFont);
 		headerStyle.setBorderBottom(HSSFCellStyle.BORDER_MEDIUM);
-		
+
 		for (Documento documento : this.documentosLote) {
-			
+
 			Row rowHeader = sheet.createRow(rowNum++);
 			Cell cellDocHeader = rowHeader.createCell(1);
 			cellDocHeader.setCellValue("Documento");
 			cellDocHeader.setCellStyle(headerStyle);
-			
+
 			Row row = sheet.createRow(rowNum++);
 			Cell cellDoc = row.createCell(1);
 			cellDoc.setCellValue(documento.getNomeNota());
-			
+
 			Row rowItemHeader = sheet.createRow(rowNum++);
 			Cell cellItemHeader = rowItemHeader.createCell(1);
 			cellItemHeader.setCellValue("NCM");
 			cellItemHeader.setCellStyle(headerStyle);
-			
+
 			cellItemHeader = rowItemHeader.createCell(2);
 			cellItemHeader.setCellValue("Descrição Encontrada");
 			cellItemHeader.setCellStyle(headerStyle);
-			
+
 			cellItemHeader = rowItemHeader.createCell(3);
 			cellItemHeader.setCellValue("Descrição Esperada");
 			cellItemHeader.setCellStyle(headerStyle);
 
 			for (DocumentoItem item : documento.getItens()) {
 				Row rowItem = sheet.createRow(rowNum++);
-				
+
 				Cell cellItem = rowItem.createCell(1);
 				cellItem.setCellValue(item.getIdNcm());
-				
-				for(DocumentoItemResult result : item.getItensResult()){
+
+				for (DocumentoItemResult result : item.getItensResult()) {
 					cellItem = rowItem.createCell(2);
-					if(result.isFlDescricaoNaoEncontrada()){
+					if (result.isFlDescricaoNaoEncontrada()) {
 						cellItem.setCellValue(result.getDescricaoNaoEncontrada());
-					}else{
+					} else {
 						cellItem.setCellValue(result.getDescricaoEncontrada());
-						
+
 						cellItem = rowItem.createCell(3);
 						cellItem.setCellValue(result.getDescricaoEsperada());
 					}
 				}
 			}
 		}
-		
+
 		documentosLote = new ArrayList<Documento>();
-		
-        try (FileOutputStream outputStream = new FileOutputStream(excelFilePath)) {
-            workbook.write(outputStream);
-        } catch (FileNotFoundException e) {
+
+		try (FileOutputStream outputStream = new FileOutputStream(excelFilePath)) {
+			workbook.write(outputStream);
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@SuppressWarnings({ "static-access", "deprecation", "resource" })
-	public void excelNovo(){
+	public void excelNovo() {
 		try {
-			
+
 			XSSFWorkbook workbook = new XSSFWorkbook();
 			XSSFSheet sheet = workbook.createSheet("ComparacaoNCM_" + new Date().getTime());
-			String excelFilePath = "D:\\Profissional\\Excel\\ComparacaoNCM_" + new Date().getTime()+ ".xlsx";
+			String excelFilePath = "D:\\Profissional\\Excel\\ComparacaoNCM_" + new Date().getTime() + ".xlsx";
 
 			int rowNum = 0;
-			
+
 			XSSFFont headerFont = workbook.createFont();
 			CellStyle headerStyle = workbook.createCellStyle();
 
@@ -481,73 +558,100 @@ public class DocumentoBean {
 			headerStyle.setAlignment(headerStyle.ALIGN_CENTER);
 			headerStyle.setFont(headerFont);
 			headerStyle.setBorderBottom(HSSFCellStyle.BORDER_MEDIUM);
-			
-			for(UploadedFile fu : this.arquivosLote){
+<<<<<<< HEAD
+
+			for (UploadedFile fu : this.arquivosLote) {
 				BufferedReader in = new BufferedReader(new InputStreamReader(fu.getInputstream()));
-				
+
 				String line;
 				StringBuffer xmlUpload = new StringBuffer();
 				while ((line = in.readLine()) != null) {
 					xmlUpload.append(line);
 				}
-		
+
 				NotaUtil util = new NotaUtil();
 				util.xmlToObject(xmlUpload.toString(), NfeProc.class);
 				setNfeEntrada(convertStringToObject(xmlUpload.toString()));
-				Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), fu.getFileName());
+				Documento documento = crateDocumento(xmlUpload.toString(),
+						new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()),
+						new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), fu.getFileName());
+=======
+			
+			for(Map<String, String> mapXml : this.xmlUploads){
+		
+				String xmlUpload = mapXml.values().toString();
+				setNfeEntrada(convertStringToObject(xmlUpload));
+				Documento documento = crateDocumento(xmlUpload, new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), mapXml.keySet().toString());
+>>>>>>> 23ac872bffd7d04c98972c4ca70327c0f7cb49b2
 				documento.setItens(compararNotas(documento.getId()));
-				
+
 				Row rowHeader = sheet.createRow(rowNum++);
 				Cell cellDocHeader = rowHeader.createCell(1);
 				cellDocHeader.setCellValue("Documento");
 				cellDocHeader.setCellStyle(headerStyle);
-				
+
 				Row row = sheet.createRow(rowNum++);
 				Cell cellDoc = row.createCell(1);
 				cellDoc.setCellValue(documento.getNomeNota());
-				
+
 				Row rowItemHeader = sheet.createRow(rowNum++);
 				Cell cellItemHeader = rowItemHeader.createCell(1);
 				cellItemHeader.setCellValue("NCM");
 				cellItemHeader.setCellStyle(headerStyle);
-				
+
 				cellItemHeader = rowItemHeader.createCell(2);
 				cellItemHeader.setCellValue("Descrição Encontrada");
 				cellItemHeader.setCellStyle(headerStyle);
-				
+
 				cellItemHeader = rowItemHeader.createCell(3);
 				cellItemHeader.setCellValue("Descrição Esperada");
 				cellItemHeader.setCellStyle(headerStyle);
 
 				for (DocumentoItem item : documento.getItens()) {
 					Row rowItem = sheet.createRow(rowNum++);
-					
+
 					Cell cellItem = rowItem.createCell(1);
 					cellItem.setCellValue(item.getIdNcm());
-					
-					for(DocumentoItemResult result : item.getItensResult()){
+
+					for (DocumentoItemResult result : item.getItensResult()) {
 						cellItem = rowItem.createCell(2);
-						if(result.isFlDescricaoNaoEncontrada()){
+						if (result.isFlDescricaoNaoEncontrada()) {
 							cellItem.setCellValue(result.getDescricaoNaoEncontrada());
-						}else{
+						} else {
 							cellItem.setCellValue(result.getDescricaoEncontrada());
-							
+
 							cellItem = rowItem.createCell(3);
 							cellItem.setCellValue(result.getDescricaoEsperada());
 						}
 					}
 				}
 			}
+<<<<<<< HEAD
+
+			try (FileOutputStream outputStream = new FileOutputStream(excelFilePath)) {
+				workbook.write(outputStream);
+			} catch (FileNotFoundException e) {
+=======
+			
+			this.xmlUploads = new ArrayList<Map<String, String>>();
 			
 	        try (FileOutputStream outputStream = new FileOutputStream(excelFilePath)) {
 	            workbook.write(outputStream);
 	        } catch (FileNotFoundException e) {
+>>>>>>> 23ac872bffd7d04c98972c4ca70327c0f7cb49b2
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+<<<<<<< HEAD
 		} catch (IOException | JAXBException e) {
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
+=======
+		} catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
+>>>>>>> 23ac872bffd7d04c98972c4ca70327c0f7cb49b2
 		}
 	}
+
 }

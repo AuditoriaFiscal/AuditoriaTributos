@@ -10,6 +10,11 @@ import javax.xml.transform.stream.StreamSource;
 public class NotaUtil {
 
 	public static String replacesNfe(String xml){
+		
+		if(xml.startsWith("[") && xml.endsWith("]")){
+			xml = xml.substring(1,xml.length());
+			xml = xml.substring(0,xml.length() - 1);
+		}
 
 		xml = xml.replaceAll(" xmlns:ns2=\"http://www.w3.org/2000/09/xmldsig#\"", "");
 		xml = xml.replaceAll(" xmlns=\"\" xmlns:ns3=\"http://www.portalfiscal.inf.br/nfe\"", "");
