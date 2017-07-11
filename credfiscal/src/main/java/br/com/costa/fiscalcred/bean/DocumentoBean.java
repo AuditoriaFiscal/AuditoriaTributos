@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
@@ -48,18 +50,16 @@ public class DocumentoBean {
 	@ManagedProperty("#{documentoService}")
 	private DocumentoService documentoService;
 
-	List<UploadedFile> arquivosLote;
-	List<Documento> documentosLote;
-
+	private List<UploadedFile> arquivosLote;
+	private List<Documento> documentosLote;
+	private List<Map<String, String>> xmlUploads;
+	
 	private UploadedFile arquivoEntrada;
 	private UploadedFile arquivoSaida;
-
 	private NfeProc nfeEntrada;
 	private NfeProc nfeSaida;
-
 	private String nomeArquivoEntrada;
 	private String nomeArquivoSaida;
-
 	private Documento documentoEntrada;
 	private Documento documentoSaida;
 
@@ -150,11 +150,20 @@ public class DocumentoBean {
 	public void setDocumentosLote(List<Documento> documentosLote) {
 		this.documentosLote = documentosLote;
 	}
+	
+	public List<Map<String, String>> getXmlUploads() {
+		return xmlUploads;
+	}
+
+	public void setXmlUploads(List<Map<String, String>> xmlUploads) {
+		this.xmlUploads = xmlUploads;
+	}
 
 	@PostConstruct
 	private void doInit() {
 		arquivosLote = new ArrayList<UploadedFile>();
 		documentosLote = new ArrayList<Documento>();
+		xmlUploads = new ArrayList<Map<String, String>>();
 		arquivoEntrada = null;
 		arquivoSaida = null;
 	}
@@ -381,7 +390,18 @@ public class DocumentoBean {
 		try {
 			
 			UploadedFile arquivo = event.getFile();
-			this.arquivosLote.add(arquivo);
+			BufferedReader in = new BufferedReader(new InputStreamReader(arquivo.getInputstream()));
+			
+			String line;
+			StringBuffer xmlUpload = new StringBuffer();
+			while ((line = in.readLine()) != null) {
+				xmlUpload.append(line);
+			}
+			
+			Map<String, String> notaMap = new HashMap<String, String>();
+			notaMap.put(arquivo.getFileName(), xmlUpload.toString());
+			
+			this.xmlUploads.add(notaMap);
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Upload completo", "O arquivo " + event.getFile().getFileName() + " foi salvo!"));
 			
 		} catch (Exception e) {
@@ -482,19 +502,11 @@ public class DocumentoBean {
 			headerStyle.setFont(headerFont);
 			headerStyle.setBorderBottom(HSSFCellStyle.BORDER_MEDIUM);
 			
-			for(UploadedFile fu : this.arquivosLote){
-				BufferedReader in = new BufferedReader(new InputStreamReader(fu.getInputstream()));
-				
-				String line;
-				StringBuffer xmlUpload = new StringBuffer();
-				while ((line = in.readLine()) != null) {
-					xmlUpload.append(line);
-				}
+			for(Map<String, String> mapXml : this.xmlUploads){
 		
-				NotaUtil util = new NotaUtil();
-				util.xmlToObject(xmlUpload.toString(), NfeProc.class);
-				setNfeEntrada(convertStringToObject(xmlUpload.toString()));
-				Documento documento = crateDocumento(xmlUpload.toString(), new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), fu.getFileName());
+				String xmlUpload = mapXml.values().toString();
+				setNfeEntrada(convertStringToObject(xmlUpload));
+				Documento documento = crateDocumento(xmlUpload, new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), mapXml.keySet().toString());
 				documento.setItens(compararNotas(documento.getId()));
 				
 				Row rowHeader = sheet.createRow(rowNum++);
@@ -539,6 +551,8 @@ public class DocumentoBean {
 				}
 			}
 			
+			this.xmlUploads = new ArrayList<Map<String, String>>();
+			
 	        try (FileOutputStream outputStream = new FileOutputStream(excelFilePath)) {
 	            workbook.write(outputStream);
 	        } catch (FileNotFoundException e) {
@@ -546,7 +560,7 @@ public class DocumentoBean {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		} catch (IOException | JAXBException e) {
+		} catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
 		}
 	}
