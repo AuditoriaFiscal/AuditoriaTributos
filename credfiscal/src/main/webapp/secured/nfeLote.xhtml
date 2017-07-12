@@ -44,10 +44,14 @@
 															  dragDropSupport="true"/>
 										</div>
 									</div>
+									<div class="col-lg-12">
+										<p:commandButton value="Comparar NCX / Downlaod Excel" ajax="false"
+											onclick="PrimeFaces.monitorDownload(start, stop);"
+											icon="ui-icon-arrowthick-1-s">
+											<p:fileDownload value="#{documentoBean.fileDownload}" />
+										</p:commandButton>
+									</div>
 								</h:form>
-								<div class="col-lg-12">
-									<p:commandButton value="Comparar NCX / Downlaod Excel" id="download" actionListener="#{documentoBean.excelNovo}" icon="fa-file-excel" />
-								</div>
 							</div>
 						</div>
 
@@ -59,4 +63,24 @@
 	</div>
 
 </body>
+
+<script type="text/javascript">
+function start() {
+    PF('startButton1').disable();
+ 
+    window['progress'] = setInterval(function() {
+        var pbClient = PF('pbClient'),
+        oldValue = pbClient.getValue(),
+        newValue = oldValue + 10;
+ 
+        pbClient.setValue(pbClient.getValue() + 10);
+ 
+        if(newValue === 100) {
+            clearInterval(window['progress']);
+        }
+ 
+ 
+    }, 1000);
+}
+</script>
 </html>

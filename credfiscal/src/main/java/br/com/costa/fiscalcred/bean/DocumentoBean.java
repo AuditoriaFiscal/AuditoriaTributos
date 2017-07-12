@@ -1,6 +1,8 @@
 package br.com.costa.fiscalcred.bean;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -30,6 +32,8 @@ import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.primefaces.event.FileUploadEvent;
+import org.primefaces.model.DefaultStreamedContent;
+import org.primefaces.model.StreamedContent;
 import org.primefaces.model.UploadedFile;
 
 import br.com.costa.credfiscal.util.DocumentoConstants;
@@ -54,7 +58,6 @@ public class DocumentoBean {
 	private List<UploadedFile> arquivosLote;
 	private List<Documento> documentosLote;
 	private List<Map<String, String>> xmlUploads;
-
 
 	private UploadedFile arquivoEntrada;
 	private UploadedFile arquivoSaida;
@@ -188,6 +191,10 @@ public class DocumentoBean {
 	public void setXmlUploads(List<Map<String, String>> xmlUploads) {
 		this.xmlUploads = xmlUploads;
 	}
+	
+	public StreamedContent getFileDownload() {
+		return excelNovo();
+	}
 
 	@PostConstruct
 	private void doInit() {
@@ -250,7 +257,6 @@ public class DocumentoBean {
 
 	}
 
-	@SuppressWarnings("static-access")
 	public void limparComparacaoNfes(ActionEvent ae) {
 		doInit();
 		FacesContext.getCurrentInstance().addMessage(null,
@@ -327,7 +333,6 @@ public class DocumentoBean {
 		return itens;
 	}
 
-	@SuppressWarnings("static-access")
 	public void compararNotasEntradaSaida() {
 		if (null != documentoEntrada && null != documentoSaida) {
 			for (DocumentoItem itemEntrada : documentoEntrada.getItens()) {
@@ -532,13 +537,13 @@ public class DocumentoBean {
 	}
 
 	@SuppressWarnings({ "static-access", "deprecation", "resource" })
-	public void excelNovo(){
+	public StreamedContent excelNovo(){
 		try {
 			
 			XSSFWorkbook workbook = new XSSFWorkbook();
 			XSSFSheet sheet = workbook.createSheet("ComparacaoNCM_" + new Date().getTime());
-			String excelFilePath = "D:\\Profissional\\Excel\\ComparacaoNCM_" + new Date().getTime()+ ".xlsx";
-
+			String fileName = "ComparacaoNCM_" + new Date().getTime()+ ".xlsx";
+			
 			int rowNum = 0;
 			
 			XSSFFont headerFont = workbook.createFont();
@@ -601,16 +606,49 @@ public class DocumentoBean {
 			}
 			
 			this.xmlUploads = new ArrayList<Map<String, String>>();
+
+			// Cria o arquivo
+			byte[] buf;
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			workbook.write(baos);
+			baos.close();
+
+			buf = baos.toByteArray();
 			
-	        try (FileOutputStream outputStream = new FileOutputStream(excelFilePath)) {
-	            workbook.write(outputStream);
-	        } catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			return new DefaultStreamedContent(new ByteArrayInputStream(buf), "application/xls", fileName);
+			
 		} catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Erro", e.getMessage()));
 		}
+		return null;
 	}
+	
+	
+	
+	
+	
+    private Integer progress;
+    
+    public Integer getProgress() {
+        if(progress == null) {
+            progress = 0;
+        }
+        else {
+            progress = progress + (int)(Math.random() * 35);
+             
+            if(progress > 100)
+                progress = 100;
+        }
+         
+        return progress;
+    }
+ 
+    public void setProgress(Integer progress) {
+        this.progress = progress;
+    }
+     
+    public void onComplete() {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Progress Completed"));
+    }
+	
 }
