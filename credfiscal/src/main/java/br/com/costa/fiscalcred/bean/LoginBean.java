@@ -69,6 +69,7 @@ public class LoginBean {
 
 		if (lista.size() > 0) {
 			this.loggedIn = true;
+			setUsuario((Usuario) lista.get(0));
 			return redirectToWelcome();
 		}else{
 			FacesMessage msg = new FacesMessage("Usuário ou Senha inválido!");

@@ -28,6 +28,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -317,20 +318,20 @@ public class DocumentoBean {
 				NCM ncm = lista.get(0);
 				itensNota[i].getProd().setComparadorNCM(NFCompareUtils.compareNFDescription(ncm, itensNota[i]));
 				if (!itensNota[i].getProd().isComparadorNCM()) {
-					itensResult.add(gravaDadosDocumentoResult(Long.parseLong(itensNota[i].getProd().getcProd()),
-							item.getId(), ncm.getDescricao(), itensNota[i].getProd().getxProd()));
+					itensResult.add(gravaDadosDocumentoResult(Long.parseLong(itensNota[i].getProd().getNCM()), item.getId(), ncm.getDescricao(), itensNota[i].getProd().getxProd()));
 				}
 			} else {
-				itensResult
-						.add(gravaDadosDocumentoResultNaoEncontrado(Long.parseLong(itensNota[i].getProd().getcProd()),
-								Long.parseLong(itensNota[i].getProd().getnItemPed()), itensNota[i].getProd().getNCM()));
+				itensResult.add(gravaDadosDocumentoResultNaoEncontrado(Long.parseLong(itensNota[i].getProd().getNCM()), Long.parseLong(itensNota[i].getProd().getnItemPed()), itensNota[i].getProd().getxProd()));
 			}
 
 			item.setItensResult(itensResult);
 			itens.add(item);
 		}
 
-		return itens;
+		List<DocumentoItem> resultadoItens = new ArrayList<DocumentoItem>();
+		resultadoItens = itens;
+		itens = new ArrayList<DocumentoItem>();
+		return resultadoItens;
 	}
 
 	public void compararNotasEntradaSaida() {
@@ -556,18 +557,21 @@ public class DocumentoBean {
 			headerStyle.setFont(headerFont);
 			headerStyle.setBorderBottom(HSSFCellStyle.BORDER_MEDIUM);
 			
-			for(Map<String, String> mapXml : this.xmlUploads){
-		
+			for(int i = 0; this.xmlUploads.size() > i; i++){
+				Map<String, String> mapXml = this.xmlUploads.get(i);
+				
 				String xmlUpload = mapXml.values().toString();
 				setNfeEntrada(convertStringToObject(xmlUpload));
 				Documento documento = crateDocumento(xmlUpload, new Long(getNfeEntrada().getNFe().getInfNFe().getIde().getcNF()), new Long(getNfeEntrada().getNFe().getInfNFe().getEmit().getCNPJ()), mapXml.keySet().toString());
 				documento.setItens(compararNotas(documento.getId()));
 				
+				sheet.addMergedRegion(new CellRangeAddress(rowNum, rowNum, 1, 3));
 				Row rowHeader = sheet.createRow(rowNum++);
 				Cell cellDocHeader = rowHeader.createCell(1);
 				cellDocHeader.setCellValue("Documento");
 				cellDocHeader.setCellStyle(headerStyle);
 				
+				sheet.addMergedRegion(new CellRangeAddress(rowNum, rowNum, 1, 3));
 				Row row = sheet.createRow(rowNum++);
 				Cell cellDoc = row.createCell(1);
 				cellDoc.setCellValue(documento.getNomeNota());
@@ -587,17 +591,18 @@ public class DocumentoBean {
 
 				for (DocumentoItem item : documento.getItens()) {
 					Row rowItem = sheet.createRow(rowNum++);
-					
+					sheet.autoSizeColumn((short)1);
 					Cell cellItem = rowItem.createCell(1);
 					cellItem.setCellValue(item.getIdNcm());
 					
 					for(DocumentoItemResult result : item.getItensResult()){
+						sheet.autoSizeColumn((short)2);
 						cellItem = rowItem.createCell(2);
 						if(result.isFlDescricaoNaoEncontrada()){
 							cellItem.setCellValue(result.getDescricaoNaoEncontrada());
 						}else{
 							cellItem.setCellValue(result.getDescricaoEncontrada());
-							
+							sheet.autoSizeColumn((short)3);
 							cellItem = rowItem.createCell(3);
 							cellItem.setCellValue(result.getDescricaoEsperada());
 						}

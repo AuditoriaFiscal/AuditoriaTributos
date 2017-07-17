@@ -38,14 +38,19 @@
 															  
 															  label="Escolher" 
 															  uploadLabel="Upload Notas" 
-															  cancelLabel="Cancelar" 
+															  cancelLabel="Cancelar"
+															  multiple="true" 
 															  
 															  sequential="true"
-															  dragDropSupport="true"/>
+															  dragDropSupport="true"
+															  
+															  update="@form"/>
 										</div>
 									</div>
 									<div class="col-lg-12">
-										<p:commandButton value="Comparar NCX / Downlaod Excel" ajax="false"
+										<p:commandButton
+											rendered="#{not empty documentoBean.xmlUploads}"
+											value="Comparar NCX / Downlaod Excel" ajax="false"
 											onclick="PrimeFaces.monitorDownload(start, stop);"
 											icon="ui-icon-arrowthick-1-s">
 											<p:fileDownload value="#{documentoBean.fileDownload}" />
